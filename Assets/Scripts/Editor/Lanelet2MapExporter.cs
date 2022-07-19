@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using UnityEngine;
@@ -25,6 +26,16 @@ namespace Simulator.Editor
         public CrossWalkData(MapCrossWalk crossWalk) : base(crossWalk)
         {
             mapCrossWalk = crossWalk;
+        }
+    }
+
+    public class SpeedBumpData : PositionsData
+    {
+        public MapSpeedBump mapSpeedBump;
+
+        public SpeedBumpData(MapSpeedBump speedBump) : base(speedBump)
+        {
+            mapSpeedBump = speedBump;
         }
     }
 
@@ -69,6 +80,7 @@ namespace Simulator.Editor
             var lineSegments = new HashSet<MapLine>(MapAnnotationData.GetData<MapLine>());
             var signalLights = new List<MapSignal>(MapAnnotationData.GetData<MapSignal>());
             var crossWalks = new List<MapCrossWalk>(MapAnnotationData.GetData<MapCrossWalk>());
+            var speedBumps = new List<MapSpeedBump>(MapAnnotationData.GetData<MapSpeedBump>());
             var mapSigns = new List<MapSign>(MapAnnotationData.GetData<MapSign>());
             var parkingSpaces = new List<MapParkingSpace>(MapAnnotationData.GetData<MapParkingSpace>());
 
@@ -102,6 +114,10 @@ namespace Simulator.Editor
             var crossWalksData = new List<CrossWalkData>(crossWalks.Select(x => new CrossWalkData(x)));
             // Link points in each crosswalk
             AlignPointsInCrossWalk(crossWalksData);
+
+            var speedBumpsData = new List<SpeedBumpData>(speedBumps.Select(x => new SpeedBumpData(x)));
+            // Link points in each speedbump
+            AlignPointsInSpeedBump(speedBumpsData);
 
             var parkingSpacesData = new List<ParkingSpaceData>(parkingSpaces.Select(x => new ParkingSpaceData(x)));
             // Link Points in each parking area
@@ -170,13 +186,15 @@ namespace Simulator.Editor
                         Relation relationRegulatoryElement = CreateRegulatoryElementFromStopLineStopSign(wayStopLine, wayStopSign);
                         map.Add(relationRegulatoryElement);
 
-                        // asscoate with lanelet
+                        // associate with lanelet
                         foreach (var laneData in stopLineLanesData[lineData])
                         {
                             RelationMember member = new RelationMember(relationRegulatoryElement.Id.Value, "regulatory_element", OsmGeoType.Relation);
                             AddMemberToLanelet(laneData, member);
                         }
+                        
                     }
+                    
                 }
             }
 
@@ -184,6 +202,12 @@ namespace Simulator.Editor
             foreach (var crossWalkData in crossWalksData)
             {
                 map.Add(CreateLaneletFromCrossWalk(crossWalkData));
+            }
+            
+            //process speed bump
+            foreach (var speedBumpData in speedBumpsData)
+            {
+                map.Add(CreateLaneletFromSpeedBump(speedBumpData));
             }
 
             // process parking space
@@ -367,6 +391,8 @@ namespace Simulator.Editor
 
         public Node CreateNodeFromPoint(Vector3 point, TagsCollection tags)
         {
+            System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
+            
             var location = MapOrigin.PositionToGpsLocation(point);
             TagsCollection tags_xyele = new TagsCollection(
                 new Tag("x", point.z.ToString()),
@@ -561,7 +587,8 @@ namespace Simulator.Editor
                     new Tag("location", "urban"),
                     new Tag("subtype", "road"),
                     new Tag("participant:vehicle", "yes"),
-                    new Tag("type", "lanelet")
+                    new Tag("type", "lanelet"),
+                    new Tag("speed_limit", laneData.speedLimit.ToString())
                 );
 
                 // create node and way from boundary
@@ -711,9 +738,11 @@ namespace Simulator.Editor
 
             var tags = new TagsCollection(
                 new Tag("height", height.ToString()),
-                new Tag("subtype", "usR1-1"),
+                new Tag("subtype", "stop_sign"),
                 new Tag("type", "traffic_sign")
             );
+
+            
 
             // create ways
             Way signWay = CreateWayFromNodes(new List<Node>() { nodeLowerLeft, nodeLowerRight }, tags);
@@ -776,6 +805,57 @@ namespace Simulator.Editor
             var tags = new TagsCollection(
                 new Tag("subtype", "crosswalk"),
                 new Tag("type", "lanelet")
+            );
+
+            var members = new[]
+            {
+                new RelationMember(wayLeft.Id.Value, "left", OsmGeoType.Way),
+                new RelationMember(wayRight.Id.Value, "right", OsmGeoType.Way),
+            };
+
+            return CreateRelationFromMembers(members, tags);
+        }
+        public Relation CreateLaneletFromSpeedBump(SpeedBumpData speedBumpData)
+        {
+            Vector3 p0 = speedBumpData.go.transform.TransformPoint(speedBumpData.mapLocalPositions[0]);
+            Vector3 p1 = speedBumpData.go.transform.TransformPoint(speedBumpData.mapLocalPositions[1]);
+            Vector3 p2 = speedBumpData.go.transform.TransformPoint(speedBumpData.mapLocalPositions[2]);
+            Vector3 p3 = speedBumpData.go.transform.TransformPoint(speedBumpData.mapLocalPositions[3]);
+
+            Node n0 = CreateNodeFromPoint(p0);
+            Node n1 = CreateNodeFromPoint(p1);
+            Node n2 = CreateNodeFromPoint(p2);
+            Node n3 = CreateNodeFromPoint(p3);
+
+            // check the distance between each point
+            double d0 = Vector3.Distance(p0, p1);
+            double d1 = Vector3.Distance(p0, p3);
+
+            Way wayLeft;
+            Way wayRight;
+            if (d0 >= d1) // create way 0-1, 2-3
+            {
+                wayLeft = CreateWayFromNodes(new List<Node>() { n0, n1 });
+                wayRight = CreateWayFromNodes(new List<Node>() { n2, n3 });
+            }
+            else // create way 0-3, 1-2
+            {
+                wayLeft = CreateWayFromNodes(new List<Node>() { n0, n3 });
+                wayRight = CreateWayFromNodes(new List<Node>() { n1, n2 });
+            }
+
+            wayLeft.Tags.Add(
+                new Tag("type", "speed_bump_marking")
+            );
+            wayRight.Tags.Add(
+                new Tag("type", "speed_bump_marking")
+            );
+
+            // create lanelet
+            var tags = new TagsCollection(
+                new Tag("subtype", "speed_bump"),
+                new Tag("type", "lanelet"),
+                new Tag("participant:vehicle","yes")
             );
 
             var members = new[]
@@ -1346,6 +1426,37 @@ namespace Simulator.Editor
                             {
                                 crossWalkDataCmp.mapLocalPositions[j] = crossWalkDataCmp.go.transform.InverseTransformPoint(pt);
                                 crossWalkDataCmp.mapWorldPositions.Add(pt);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        void AlignPointsInSpeedBump(List<SpeedBumpData> speedBumpsData)
+        {
+            ClearWorldPositions(speedBumpsData);
+            foreach (var speedBumpData in speedBumpsData)
+            {
+                for (int i = 0; i < speedBumpData.mapLocalPositions.Count; i++)
+                {
+                    var pt = speedBumpData.go.transform.TransformPoint(speedBumpData.mapLocalPositions[i]);
+
+                    foreach (var speedBumpDataCmp in speedBumpsData)
+                    {
+                        if (speedBumpData == speedBumpDataCmp)
+                        {
+                            continue;
+                        }
+
+                        for (int j = 0; j < speedBumpDataCmp.mapLocalPositions.Count; j++)
+                        {
+                            var ptCmp = speedBumpDataCmp.go.transform.TransformPoint(speedBumpDataCmp.mapLocalPositions[j]);
+
+                            if ((pt - ptCmp).magnitude < MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR)
+                            {
+                                speedBumpDataCmp.mapLocalPositions[j] = speedBumpDataCmp.go.transform.InverseTransformPoint(pt);
+                                speedBumpDataCmp.mapWorldPositions.Add(pt);
                             }
                         }
                     }
