@@ -10,6 +10,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Xml;
+using System.Xml.Linq;
 using UnityEngine;
 using UnityEditor;
 using Simulator.Map;
@@ -1828,6 +1830,19 @@ namespace Simulator.Editor
                         }
                         target.Close();
                     }
+
+                    // makes created .osm file more readable
+                    var strContents =File.ReadAllText(filePath);
+                    try
+                    {
+                        XDocument doc = XDocument.Parse(strContents);
+                        File.WriteAllText(filePath,doc.ToString());
+                    }
+                    catch (Exception)
+                    {
+                        // Handle and throw if fatal exception here; don't just ignore them
+                    }
+                    
                     Debug.Log("Successfully generated and exported Lanelet2 HD Map!");
                     return true;
                 }
