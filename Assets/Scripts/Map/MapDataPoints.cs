@@ -14,7 +14,7 @@ namespace Simulator.Map
     public class MapDataPoints : MapData
     {
         public bool DisplayHandles = false;
-
+        public float height = 0.1f; 
         public List<Vector3> mapLocalPositions = new List<Vector3>();
         [System.NonSerialized]
         public List<Vector3> mapWorldPositions = new List<Vector3>();

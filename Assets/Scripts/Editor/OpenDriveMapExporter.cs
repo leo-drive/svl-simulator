@@ -31,12 +31,15 @@ namespace Simulator.Editor
         public List<Vector3> mapWorldPositions = new List<Vector3>();
         public GameObject go;
         public PositionsData() {}
+        public float height = 0.1f;
         public PositionsData(MapDataPoints mapDataPoints)
         {
             mapLocalPositions = new List<Vector3>(mapDataPoints.mapLocalPositions);
             mapWorldPositions = new List<Vector3>(mapDataPoints.mapWorldPositions);
             go = mapDataPoints.gameObject;
+            height = mapDataPoints.height;
         }
+        
     }
 
     public class LineData: PositionsData, ILaneLineDataCommon<LineData>

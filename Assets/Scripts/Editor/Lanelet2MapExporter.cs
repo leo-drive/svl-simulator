@@ -34,7 +34,6 @@ namespace Simulator.Editor
     public class SpeedBumpData : PositionsData
     {
         public MapSpeedBump mapSpeedBump;
-
         public SpeedBumpData(MapSpeedBump speedBump) : base(speedBump)
         {
             mapSpeedBump = speedBump;
@@ -854,11 +853,13 @@ namespace Simulator.Editor
             );
 
             // create lanelet
+
             var tags = new TagsCollection(
+                new Tag("participant:vehicle","yes"),
                 new Tag("subtype", "speed_bump"),
-                new Tag("type", "lanelet"),
-                new Tag("participant:vehicle","yes")
-            );
+                new Tag("height", speedBumpData.height.ToString()),
+                new Tag("type", "lanelet")
+                );
 
             var members = new[]
             {
