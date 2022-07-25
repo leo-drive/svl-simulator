@@ -7,18 +7,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Xml;
 using System.Xml.Linq;
 using UnityEngine;
-using UnityEditor;
 using Simulator.Map;
 using OsmSharp;
 using OsmSharp.Streams;
 using OsmSharp.Tags;
-using Utility = Simulator.Utilities.Utility;
 
 namespace Simulator.Editor
 {
@@ -1837,7 +1833,8 @@ namespace Simulator.Editor
                     try
                     {
                         XDocument doc = XDocument.Parse(strContents);
-                        File.WriteAllText(filePath,doc.ToString());
+                        string xmlAttribute = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+                        File.WriteAllText(filePath,xmlAttribute + Environment.NewLine + doc.ToString());
                     }
                     catch (Exception)
                     {
