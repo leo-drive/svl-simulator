@@ -1806,7 +1806,7 @@ public class MapAnnotations : EditorWindow
 
         tool.tempWaypoints.RemoveAll(p => p == null);
 
-        if (tool.tempWaypoints.Count != 2)
+        if (tool.tempWaypoints.Count != 4)
         {
             Debug.Log("You need two temp waypoints for this operation");
             return;
