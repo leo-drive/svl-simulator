@@ -32,12 +32,18 @@ namespace Simulator.Editor
         public GameObject go;
         public PositionsData() {}
         public float height = 0.1f;
+        public bool isSafetyCrosswalk;
+        public float safetySlowDownSpeed = 3f;
+        public float safetySlowDownDistance = 2f;
         public PositionsData(MapDataPoints mapDataPoints)
         {
             mapLocalPositions = new List<Vector3>(mapDataPoints.mapLocalPositions);
             mapWorldPositions = new List<Vector3>(mapDataPoints.mapWorldPositions);
             go = mapDataPoints.gameObject;
             height = mapDataPoints.height;
+            isSafetyCrosswalk = mapDataPoints.isSafetyCrosswalk;
+            safetySlowDownSpeed = mapDataPoints.safetySlowDownSpeed;
+            safetySlowDownDistance = mapDataPoints.safetySlowDownDistance;
         }
         
     }

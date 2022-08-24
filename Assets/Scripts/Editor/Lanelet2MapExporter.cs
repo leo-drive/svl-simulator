@@ -799,10 +799,24 @@ namespace Simulator.Editor
             );
 
             // create lanelet
-            var tags = new TagsCollection(
-                new Tag("subtype", "crosswalk"),
-                new Tag("type", "lanelet")
-            );
+            
+            TagsCollection tags;
+            if (crossWalkData.isSafetyCrosswalk)
+            {
+                tags = new TagsCollection(
+                    new Tag("subtype", "crosswalk"),
+                    new Tag("type", "lanelet"),
+                    new Tag("safety_slow_down_speed", crossWalkData.safetySlowDownSpeed.ToString()),
+                    new Tag("safety_slow_down_distance", crossWalkData.safetySlowDownDistance.ToString())
+                    );
+            }
+            else
+            {
+                tags = new TagsCollection(
+                    new Tag("subtype", "crosswalk"),
+                    new Tag("type", "lanelet")
+                    );
+            }
 
             var members = new[]
             {
