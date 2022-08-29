@@ -33,8 +33,8 @@ namespace Simulator.Editor
         public PositionsData() {}
         public float height = 0.1f;
         public bool isSafetyCrosswalk;
-        public float safetySlowDownSpeed = 3f;
-        public float safetySlowDownDistance = 2f;
+        public float safetySlowDownSpeed = 3.0f;
+        public float safetySlowDownDistance = 2.0f;
         public PositionsData(MapDataPoints mapDataPoints)
         {
             mapLocalPositions = new List<Vector3>(mapDataPoints.mapLocalPositions);

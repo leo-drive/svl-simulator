@@ -585,7 +585,7 @@ namespace Simulator.Editor
                     new Tag("subtype", "road"),
                     new Tag("participant:vehicle", "yes"),
                     new Tag("type", "lanelet"),
-                    new Tag("speed_limit", laneData.speedLimit.ToString())
+                    new Tag("speed_limit", laneData.speedLimit.ToString("F"))
                 );
 
                 // create node and way from boundary
@@ -806,8 +806,8 @@ namespace Simulator.Editor
                 tags = new TagsCollection(
                     new Tag("subtype", "crosswalk"),
                     new Tag("type", "lanelet"),
-                    new Tag("safety_slow_down_speed", crossWalkData.safetySlowDownSpeed.ToString()),
-                    new Tag("safety_slow_down_distance", crossWalkData.safetySlowDownDistance.ToString())
+                    new Tag("safety_slow_down_speed", crossWalkData.safetySlowDownSpeed.ToString("F")),
+                    new Tag("safety_slow_down_distance", crossWalkData.safetySlowDownDistance.ToString("F"))
                     );
             }
             else

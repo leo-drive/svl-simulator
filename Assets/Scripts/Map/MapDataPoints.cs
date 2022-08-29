@@ -16,8 +16,8 @@ namespace Simulator.Map
         public bool DisplayHandles = false;
         public float height = 0.1f;
         public bool isSafetyCrosswalk = false;
-        public float safetySlowDownSpeed = 3f;
-        public float safetySlowDownDistance = 2f;
+        public float safetySlowDownSpeed = 3.0f;
+        public float safetySlowDownDistance = 2.0f;
         public List<Vector3> mapLocalPositions = new List<Vector3>();
         [System.NonSerialized]
         public List<Vector3> mapWorldPositions = new List<Vector3>();
