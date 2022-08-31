@@ -9,17 +9,16 @@ namespace Simulator.Map
 {
     public class MapSpeedBump : MapDataPoints, IMapType
     {
-        public string id
-        {
-            get;
-            set;
-        }
+        public float height = 0.1f;
+
+        public string id { get; set; }
 
         public override void Draw()
         {
             if (mapLocalPositions.Count < 2) return;
 
-            AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.WAYPOINT_SIZE, speedBumpColor);
+            AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.WAYPOINT_SIZE,
+                speedBumpColor);
             AnnotationGizmos.DrawLines(transform, mapLocalPositions, speedBumpColor);
             if (MapAnnotationTool.SHOW_HELP)
             {

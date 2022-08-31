@@ -801,13 +801,13 @@ namespace Simulator.Editor
             // create lanelet
             
             TagsCollection tags;
-            if (crossWalkData.isSafetyCrosswalk)
+            if (crossWalkData.mapCrossWalk.isSafetyCrosswalk)
             {
                 tags = new TagsCollection(
                     new Tag("subtype", "crosswalk"),
                     new Tag("type", "lanelet"),
-                    new Tag("safety_slow_down_speed", crossWalkData.safetySlowDownSpeed.ToString("F")),
-                    new Tag("safety_slow_down_distance", crossWalkData.safetySlowDownDistance.ToString("F"))
+                    new Tag("safety_slow_down_speed", crossWalkData.mapCrossWalk.safetySlowDownSpeed.ToString("F")),
+                    new Tag("safety_slow_down_distance", crossWalkData.mapCrossWalk.safetySlowDownDistance.ToString("F"))
                     );
             }
             else
@@ -867,7 +867,7 @@ namespace Simulator.Editor
             var tags = new TagsCollection(
                 new Tag("participant:vehicle","yes"),
                 new Tag("subtype", "speed_bump"),
-                new Tag("height", speedBumpData.height.ToString()),
+                new Tag("height", speedBumpData.mapSpeedBump.height.ToString("F")),
                 new Tag("type", "lanelet")
                 );
 
