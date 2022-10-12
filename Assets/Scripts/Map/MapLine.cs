@@ -14,20 +14,16 @@ namespace Simulator.Map
     {
         public LineType lineType;
         public bool isVirtual = false;
-        
         public bool isStopSign = false;
         public MapSign stopSign;
         public SignalLightStateType currentState = SignalLightStateType.Yellow;
 
         public List<MapLine> befores { get; set; } = new List<MapLine>();
         public List<MapLine> afters { get; set; } = new List<MapLine>();
-        [System.NonSerialized]
-        public List<MapSignal> signals = new List<MapSignal>();
-        [System.NonSerialized]
-        public MapIntersection intersection;
-        [System.NonSerialized]
-        public string id = null;
-        
+        [System.NonSerialized] public List<MapSignal> signals = new List<MapSignal>();
+        [System.NonSerialized] public MapIntersection intersection;
+        [System.NonSerialized] public string id = null;
+
         public override void Draw()
         {
             if (mapLocalPositions.Count < 2) return;
@@ -41,6 +37,7 @@ namespace Simulator.Map
                 case LineType.SOLID_WHITE:
                 case LineType.DOTTED_WHITE:
                 case LineType.DOUBLE_WHITE:
+
                     typeColor = whiteLineColor;
                     break;
                 case LineType.SOLID_YELLOW:
@@ -57,6 +54,12 @@ namespace Simulator.Map
                 case LineType.VIRTUAL:
                     typeColor = virtualLineColor;
                     break;
+                case LineType.ROAD_BORDER:
+                    typeColor = roadBorderColor;
+                    break;
+                case LineType.SPEED_BUMP:
+                    typeColor = speedBumpColor;
+                    break;
                 default:
                     break;
             }
@@ -67,7 +70,9 @@ namespace Simulator.Map
                 UnityEditor.Handles.Label(transform.position, "    " + lineType + " LINE");
 #endif
             }
-            AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.WAYPOINT_SIZE, typeColor + selectedColor);
+
+            AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.WAYPOINT_SIZE,
+                typeColor + selectedColor);
             AnnotationGizmos.DrawLines(transform, mapLocalPositions, typeColor + selectedColor);
         }
     }

@@ -21,6 +21,7 @@ namespace Simulator.Editor
     public class CrossWalkData : PositionsData
     {
         public MapCrossWalk mapCrossWalk;
+
         public CrossWalkData(MapCrossWalk crossWalk) : base(crossWalk)
         {
             mapCrossWalk = crossWalk;
@@ -30,6 +31,7 @@ namespace Simulator.Editor
     public class SpeedBumpData : PositionsData
     {
         public MapSpeedBump mapSpeedBump;
+
         public SpeedBumpData(MapSpeedBump speedBump) : base(speedBump)
         {
             mapSpeedBump = speedBump;
@@ -39,6 +41,7 @@ namespace Simulator.Editor
     public class ParkingSpaceData : PositionsData
     {
         public MapParkingSpace mapParkingSpace;
+
         public ParkingSpaceData(MapParkingSpace parkingSpace) : base(parkingSpace)
         {
             mapParkingSpace = parkingSpace;
@@ -149,13 +152,16 @@ namespace Simulator.Editor
                         }
 
                         // create relation of regulatory element
-                        Relation relationRegulatoryElement = CreateRegulatoryElementFromStopLineSignals(wayStopLine, wayTrafficLightList, wayLightBulbsList);
+                        Relation relationRegulatoryElement =
+                            CreateRegulatoryElementFromStopLineSignals(wayStopLine, wayTrafficLightList,
+                                wayLightBulbsList);
                         map.Add(relationRegulatoryElement);
 
                         // asscoate with lanelet
                         foreach (var laneData in stopLineLanesData[lineData])
                         {
-                            RelationMember member = new RelationMember(relationRegulatoryElement.Id.Value, "regulatory_element", OsmGeoType.Relation);
+                            RelationMember member = new RelationMember(relationRegulatoryElement.Id.Value,
+                                "regulatory_element", OsmGeoType.Relation);
                             AddMemberToLanelet(laneData, member);
                         }
                     }
@@ -174,24 +180,25 @@ namespace Simulator.Editor
                         // create way for stop sign
                         if (lineData.mapLine.stopSign == null)
                         {
-                            var msg = $"Stop line {lineData.go.name} should be associated with a stop sign, please check and fix!";
+                            var msg =
+                                $"Stop line {lineData.go.name} should be associated with a stop sign, please check and fix!";
                             Debug.LogError(msg, lineData.go);
                             continue;
                         }
 
                         Way wayStopSign = CreateWayFromStopSign(lineData.mapLine.stopSign);
-                        Relation relationRegulatoryElement = CreateRegulatoryElementFromStopLineStopSign(wayStopLine, wayStopSign);
+                        Relation relationRegulatoryElement =
+                            CreateRegulatoryElementFromStopLineStopSign(wayStopLine, wayStopSign);
                         map.Add(relationRegulatoryElement);
 
                         // associate with lanelet
                         foreach (var laneData in stopLineLanesData[lineData])
                         {
-                            RelationMember member = new RelationMember(relationRegulatoryElement.Id.Value, "regulatory_element", OsmGeoType.Relation);
+                            RelationMember member = new RelationMember(relationRegulatoryElement.Id.Value,
+                                "regulatory_element", OsmGeoType.Relation);
                             AddMemberToLanelet(laneData, member);
                         }
-                        
                     }
-                    
                 }
             }
 
@@ -200,7 +207,7 @@ namespace Simulator.Editor
             {
                 map.Add(CreateLaneletFromCrossWalk(crossWalkData));
             }
-            
+
             //process speed bump
             foreach (var speedBumpData in speedBumpsData)
             {
@@ -251,6 +258,7 @@ namespace Simulator.Editor
                     }
                 }
             }
+
             return null;
         }
 
@@ -271,7 +279,8 @@ namespace Simulator.Editor
                 if (element.Type == OsmGeoType.Node)
                 {
                     Node _node = element as Node;
-                    if (_node.Latitude == node.Latitude && _node.Longitude == node.Longitude && _node.Tags.Equals(node.Tags))
+                    if (_node.Latitude == node.Latitude && _node.Longitude == node.Longitude &&
+                        _node.Tags.Equals(node.Tags))
                     {
                         return _node.Id.Value;
                     }
@@ -299,6 +308,7 @@ namespace Simulator.Editor
                     }
                 }
             }
+
             return null;
         }
 
@@ -319,7 +329,8 @@ namespace Simulator.Editor
                 if (element.Type == OsmGeoType.Way)
                 {
                     Way _way = element as Way;
-                    if (Enumerable.SequenceEqual(_way.Nodes, way.Nodes) || Enumerable.SequenceEqual(_way.Nodes, way.Nodes.Reverse()))
+                    if (Enumerable.SequenceEqual(_way.Nodes, way.Nodes) ||
+                        Enumerable.SequenceEqual(_way.Nodes, way.Nodes.Reverse()))
                     {
                         return _way.Id.Value;
                     }
@@ -347,6 +358,7 @@ namespace Simulator.Editor
                     firstNode = Id2Node[nodeId];
                 }
                 else firstNode = CreateNodeByIndex(lineData, 0);
+
                 nodes.Add(firstNode);
             }
 
@@ -365,6 +377,7 @@ namespace Simulator.Editor
                     lastNode = Id2Node[nodeId];
                 }
                 else lastNode = CreateNodeByIndex(lineData, lineData.mapWorldPositions.Count - 1);
+
                 nodes.Add(lastNode);
             }
 
@@ -389,7 +402,7 @@ namespace Simulator.Editor
         public Node CreateNodeFromPoint(Vector3 point, TagsCollection tags)
         {
             System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
-            
+
             var location = MapOrigin.PositionToGpsLocation(point);
             TagsCollection tags_xyele = new TagsCollection(
                 new Tag("x", point.z.ToString()),
@@ -466,8 +479,10 @@ namespace Simulator.Editor
             double height = boundScale.y;
 
             Vector3 pos_center = Vector3.zero;
-            Vector3 pos_lower_left = new Vector3(pos_center.x + boundScale.x / 2.0f, pos_center.y - boundScale.y / 2.0f, pos_center.z);
-            Vector3 pos_lower_right = new Vector3(pos_center.x - boundScale.x / 2.0f, pos_center.y - boundScale.y / 2.0f, pos_center.z);
+            Vector3 pos_lower_left = new Vector3(pos_center.x + boundScale.x / 2.0f, pos_center.y - boundScale.y / 2.0f,
+                pos_center.z);
+            Vector3 pos_lower_right = new Vector3(pos_center.x - boundScale.x / 2.0f,
+                pos_center.y - boundScale.y / 2.0f, pos_center.z);
 
             Vector3 world_pos_center = signalLight.transform.TransformPoint(pos_center);
             Vector3 world_pos_lower_left = signalLight.transform.TransformPoint(pos_lower_left);
@@ -540,7 +555,8 @@ namespace Simulator.Editor
             return relation;
         }
 
-        public Relation CreateRegulatoryElementFromStopLineSignals(Way wayStopLine, List<Way> wayTrafficLightList, List<Way> wayLightBulbsList)
+        public Relation CreateRegulatoryElementFromStopLineSignals(Way wayStopLine, List<Way> wayTrafficLightList,
+            List<Way> wayLightBulbsList)
         {
             int num = wayTrafficLightList.Count + wayLightBulbsList.Count + 1;
             RelationMember[] members = new RelationMember[num];
@@ -554,7 +570,8 @@ namespace Simulator.Editor
 
             for (int i = 0; i < wayLightBulbsList.Count; i++)
             {
-                members[i + wayTrafficLightList.Count + 1] = new RelationMember(wayLightBulbsList[i].Id.Value, "light_bulbs", OsmGeoType.Way);
+                members[i + wayTrafficLightList.Count + 1] =
+                    new RelationMember(wayLightBulbsList[i].Id.Value, "light_bulbs", OsmGeoType.Way);
             }
 
             TagsCollection tags = new TagsCollection(
@@ -642,12 +659,14 @@ namespace Simulator.Editor
                             new Tag("turn_direction", "straight")
                         );
                     }
+
                     if (lane.laneTurnType == MapTrafficLane.LaneTurnType.RIGHT_TURN)
                     {
                         lanelet_tags.Add(
                             new Tag("turn_direction", "right")
                         );
                     }
+
                     if (lane.laneTurnType == MapTrafficLane.LaneTurnType.LEFT_TURN)
                     {
                         lanelet_tags.Add(
@@ -693,6 +712,7 @@ namespace Simulator.Editor
                 LineId2EndNodeId[afterLaneLineData.go.GetInstanceID()] = EndNodeBasedOnLane;
             }
         }
+
         void UpdateLineStartEnd2NodeId(LineData lineData, Way way)
         {
             var lineId = lineData.go.GetInstanceID();
@@ -713,6 +733,7 @@ namespace Simulator.Editor
 
                 return wayStopLine;
             }
+
             return null;
         }
 
@@ -722,8 +743,10 @@ namespace Simulator.Editor
             double height = boundScale.y;
 
             Vector3 pos_center = Vector3.zero + sign.boundOffsets;
-            Vector3 pos_lower_left = new Vector3(pos_center.x + boundScale.x / 2.0f, pos_center.y - boundScale.y / 2.0f, pos_center.z);
-            Vector3 pos_lower_right = new Vector3(pos_center.x - boundScale.x / 2.0f, pos_center.y - boundScale.y / 2.0f, pos_center.z);
+            Vector3 pos_lower_left = new Vector3(pos_center.x + boundScale.x / 2.0f, pos_center.y - boundScale.y / 2.0f,
+                pos_center.z);
+            Vector3 pos_lower_right = new Vector3(pos_center.x - boundScale.x / 2.0f,
+                pos_center.y - boundScale.y / 2.0f, pos_center.z);
 
             Vector3 world_pos_center = sign.transform.TransformPoint(pos_center);
             Vector3 world_pos_lower_left = sign.transform.TransformPoint(pos_lower_left);
@@ -739,7 +762,6 @@ namespace Simulator.Editor
                 new Tag("type", "traffic_sign")
             );
 
-            
 
             // create ways
             Way signWay = CreateWayFromNodes(new List<Node>() { nodeLowerLeft, nodeLowerRight }, tags);
@@ -749,7 +771,8 @@ namespace Simulator.Editor
 
         public Relation CreateRegulatoryElementFromStopLineStopSign(Way wayStopLine, Way wayStopSign)
         {
-            RelationMember[] members = new RelationMember[] {
+            RelationMember[] members = new RelationMember[]
+            {
                 new RelationMember(wayStopLine.Id.Value, "ref_line", OsmGeoType.Way),
                 new RelationMember(wayStopSign.Id.Value, "refers", OsmGeoType.Way)
             };
@@ -799,7 +822,7 @@ namespace Simulator.Editor
             );
 
             // create lanelet
-            
+
             TagsCollection tags;
             if (crossWalkData.mapCrossWalk.isSafetyCrosswalk)
             {
@@ -807,15 +830,16 @@ namespace Simulator.Editor
                     new Tag("subtype", "crosswalk"),
                     new Tag("type", "lanelet"),
                     new Tag("safety_slow_down_speed", crossWalkData.mapCrossWalk.safetySlowDownSpeed.ToString("F")),
-                    new Tag("safety_slow_down_distance", crossWalkData.mapCrossWalk.safetySlowDownDistance.ToString("F"))
-                    );
+                    new Tag("safety_slow_down_distance",
+                        crossWalkData.mapCrossWalk.safetySlowDownDistance.ToString("F"))
+                );
             }
             else
             {
                 tags = new TagsCollection(
                     new Tag("subtype", "crosswalk"),
                     new Tag("type", "lanelet")
-                    );
+                );
             }
 
             var members = new[]
@@ -826,6 +850,7 @@ namespace Simulator.Editor
 
             return CreateRelationFromMembers(members, tags);
         }
+
         public Relation CreateLaneletFromSpeedBump(SpeedBumpData speedBumpData)
         {
             Vector3 p0 = speedBumpData.go.transform.TransformPoint(speedBumpData.mapLocalPositions[0]);
@@ -865,11 +890,11 @@ namespace Simulator.Editor
             // create lanelet
 
             var tags = new TagsCollection(
-                new Tag("participant:vehicle","yes"),
+                new Tag("participant:vehicle", "yes"),
                 new Tag("subtype", "speed_bump"),
                 new Tag("height", speedBumpData.mapSpeedBump.height.ToString("F")),
                 new Tag("type", "lanelet")
-                );
+            );
 
             var members = new[]
             {
@@ -907,7 +932,7 @@ namespace Simulator.Editor
                 new Tag("location", "urban"),
                 new Tag("subtype", "parking"),
                 new Tag("type", "multipolygon")
-                );
+            );
 
             var members = new[]
             {
@@ -957,6 +982,7 @@ namespace Simulator.Editor
                 {
                     rightId1 = members1[i].Id;
                 }
+
                 if (members1[i].Role == "left")
                 {
                     leftId1 = members1[i].Id;
@@ -969,6 +995,7 @@ namespace Simulator.Editor
                 {
                     rightId2 = members2[i].Id;
                 }
+
                 if (members2[i].Role == "left")
                 {
                     leftId2 = members2[i].Id;
@@ -1075,7 +1102,8 @@ namespace Simulator.Editor
 
             if (leftLanePoints.Count != partitions + 1 || rightLanePoints.Count != partitions + 1)
             {
-                Debug.LogError("Something wrong with number of points. (left, right, partitions): (" + leftLanePoints.Count + ", " + rightLanePoints.Count + ", " + partitions);
+                Debug.LogError("Something wrong with number of points. (left, right, partitions): (" +
+                               leftLanePoints.Count + ", " + rightLanePoints.Count + ", " + partitions);
                 return new List<Vector3>();
             }
 
@@ -1135,11 +1163,11 @@ namespace Simulator.Editor
                 {
                     orientation = (lanePoints[i] - lanePoints[i - 1]).normalized;
                 }
+
                 Vector3 boundaryPoint = new Vector3();
                 if (side == "left")
                 {
                     boundaryPoint = lanePoints[i] + Quaternion.Euler(0, -90, 0) * (orientation * (float)width);
-
                 }
                 else if (side == "right")
                 {
@@ -1149,6 +1177,7 @@ namespace Simulator.Editor
                 {
                     boundaryPoint = new Vector3(0, 0, 0);
                 }
+
                 boundaryLinePoints.Add(boundaryPoint);
             }
 
@@ -1192,20 +1221,23 @@ namespace Simulator.Editor
             {
                 allConnectedLanesData2InOut[mapLaneData] = InOut.Out;
                 AddInOutToDictionary(mapLaneData.befores, allConnectedLanesData2InOut, InOut.In);
-                foreach (var beforeLane in mapLaneData.befores) AddInOutToDictionary(beforeLane.afters, allConnectedLanesData2InOut, InOut.Out);
+                foreach (var beforeLane in mapLaneData.befores)
+                    AddInOutToDictionary(beforeLane.afters, allConnectedLanesData2InOut, InOut.Out);
             }
             else
             {
                 allConnectedLanesData2InOut[mapLaneData] = InOut.In;
                 AddInOutToDictionary(mapLaneData.afters, allConnectedLanesData2InOut, InOut.Out);
-                foreach (var afterLane in mapLaneData.afters) AddInOutToDictionary(afterLane.befores, allConnectedLanesData2InOut, InOut.In);
+                foreach (var afterLane in mapLaneData.afters)
+                    AddInOutToDictionary(afterLane.befores, allConnectedLanesData2InOut, InOut.In);
             }
 
             if (allConnectedLanesData2InOut.Count > 1)
             {
                 var boundaryLineData2InOut = GetBoundaryLine2InOut(allConnectedLanesData2InOut);
                 List<Vector3> leftMergingPoints, rightMergingPoints;
-                UpdateMergingPoints(allConnectedLanesData2InOut, boundaryLineData2InOut, out leftMergingPoints, out rightMergingPoints);
+                UpdateMergingPoints(allConnectedLanesData2InOut, boundaryLineData2InOut, out leftMergingPoints,
+                    out rightMergingPoints);
 
                 var leftEndPoint = Lanelet2MapImporter.GetAverage(leftMergingPoints);
                 var rightEndPoint = Lanelet2MapImporter.GetAverage(rightMergingPoints);
@@ -1264,7 +1296,7 @@ namespace Simulator.Editor
             var positions = lineData.mapWorldPositions;
 
             // We have less than 2 points, nothing to remove.
-            if(positions.Count < 3)
+            if (positions.Count < 3)
                 return;
             Vector3 p1 = positions.First(), p2 = positions[1];
             var changed = false;
@@ -1278,6 +1310,7 @@ namespace Simulator.Editor
                     changed = true;
                 }
             }
+
             Vector3 p3 = positions[positions.Count - 2], p4 = positions.Last();
             if ((p3 - p4).magnitude < distThreshold)
             {
@@ -1378,9 +1411,14 @@ namespace Simulator.Editor
             else return InOut.In;
         }
 
-        enum InOut {In, Out};
+        enum InOut
+        {
+            In,
+            Out
+        };
 
-        static void AddInOutToDictionary(List<LaneData> lanesData, Dictionary<LaneData, InOut> allConnectedLanesData2InOut, InOut inOut)
+        static void AddInOutToDictionary(List<LaneData> lanesData,
+            Dictionary<LaneData, InOut> allConnectedLanesData2InOut, InOut inOut)
         {
             foreach (var laneData in lanesData)
             {
@@ -1392,8 +1430,10 @@ namespace Simulator.Editor
                         message += $"already and with {allConnectedLanesData2InOut[laneData]} not {inOut}";
                         Debug.LogError(message, laneData.go);
                     }
+
                     continue;
                 }
+
                 allConnectedLanesData2InOut[laneData] = inOut;
             }
         }
@@ -1433,11 +1473,14 @@ namespace Simulator.Editor
 
                         for (int j = 0; j < crossWalkDataCmp.mapLocalPositions.Count; j++)
                         {
-                            var ptCmp = crossWalkDataCmp.go.transform.TransformPoint(crossWalkDataCmp.mapLocalPositions[j]);
+                            var ptCmp = crossWalkDataCmp.go.transform.TransformPoint(
+                                crossWalkDataCmp.mapLocalPositions[j]);
 
-                            if ((pt - ptCmp).magnitude < MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR)
+                            if ((pt - ptCmp).magnitude <
+                                MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR)
                             {
-                                crossWalkDataCmp.mapLocalPositions[j] = crossWalkDataCmp.go.transform.InverseTransformPoint(pt);
+                                crossWalkDataCmp.mapLocalPositions[j] =
+                                    crossWalkDataCmp.go.transform.InverseTransformPoint(pt);
                                 crossWalkDataCmp.mapWorldPositions.Add(pt);
                             }
                         }
@@ -1445,7 +1488,7 @@ namespace Simulator.Editor
                 }
             }
         }
-        
+
         void AlignPointsInSpeedBump(List<SpeedBumpData> speedBumpsData)
         {
             ClearWorldPositions(speedBumpsData);
@@ -1464,11 +1507,14 @@ namespace Simulator.Editor
 
                         for (int j = 0; j < speedBumpDataCmp.mapLocalPositions.Count; j++)
                         {
-                            var ptCmp = speedBumpDataCmp.go.transform.TransformPoint(speedBumpDataCmp.mapLocalPositions[j]);
+                            var ptCmp = speedBumpDataCmp.go.transform.TransformPoint(
+                                speedBumpDataCmp.mapLocalPositions[j]);
 
-                            if ((pt - ptCmp).magnitude < MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR)
+                            if ((pt - ptCmp).magnitude <
+                                MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR)
                             {
-                                speedBumpDataCmp.mapLocalPositions[j] = speedBumpDataCmp.go.transform.InverseTransformPoint(pt);
+                                speedBumpDataCmp.mapLocalPositions[j] =
+                                    speedBumpDataCmp.go.transform.InverseTransformPoint(pt);
                                 speedBumpDataCmp.mapWorldPositions.Add(pt);
                             }
                         }
@@ -1495,11 +1541,14 @@ namespace Simulator.Editor
 
                         for (int j = 0; j < parkingSpaceDataCmp.mapLocalPositions.Count; j++)
                         {
-                            var ptCmp = parkingSpaceDataCmp.go.transform.TransformPoint(parkingSpaceDataCmp.mapLocalPositions[j]);
+                            var ptCmp = parkingSpaceDataCmp.go.transform.TransformPoint(
+                                parkingSpaceDataCmp.mapLocalPositions[j]);
 
-                            if ((pt - ptCmp).magnitude < MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR)
+                            if ((pt - ptCmp).magnitude <
+                                MapAnnotationTool.PROXIMITY / MapAnnotationTool.EXPORT_SCALE_FACTOR)
                             {
-                                parkingSpaceDataCmp.mapLocalPositions[j] = parkingSpaceDataCmp.go.transform.InverseTransformPoint(pt);
+                                parkingSpaceDataCmp.mapLocalPositions[j] =
+                                    parkingSpaceDataCmp.go.transform.InverseTransformPoint(pt);
                                 parkingSpaceDataCmp.mapWorldPositions.Add(pt);
                             }
                         }
@@ -1508,7 +1557,8 @@ namespace Simulator.Editor
             }
         }
 
-        public static List<Vector3> SplitLine(List<Vector3> line, float resolution, int partitions, bool reverse = false)
+        public static List<Vector3> SplitLine(List<Vector3> line, float resolution, int partitions,
+            bool reverse = false)
         {
             List<Vector3> splittedLinePoints = new List<Vector3>();
             splittedLinePoints.Add(line[0]); // Add first point
@@ -1553,7 +1603,7 @@ namespace Simulator.Editor
             return splittedLinePoints;
         }
 
-        public static bool AreAllLanesWithBoundaries(HashSet<MapTrafficLane> lanes, bool showError=false)
+        public static bool AreAllLanesWithBoundaries(HashSet<MapTrafficLane> lanes, bool showError = false)
         {
             var areAllLanesWithBoundaries = true;
             foreach (var lane in lanes)
@@ -1598,14 +1648,16 @@ namespace Simulator.Editor
                     {
                         if (HasAdjacentLaneBoundaryInBetween(laneSegment, GetAdjacentLane(laneSegment, "left")))
                         {
-                            laneSegment.leftLineBoundry = GetAdjacentLaneBoundaryInBetween(laneSegment, GetAdjacentLane(laneSegment, "left"));
+                            laneSegment.leftLineBoundry =
+                                GetAdjacentLaneBoundaryInBetween(laneSegment, GetAdjacentLane(laneSegment, "left"));
                         }
                         else
                         {
                             var fakeBoundaryLineObj = new GameObject("FakeBoundaryLine_" + k);
                             var fakeBoundaryLine = fakeBoundaryLineObj.AddComponent<MapLine>();
 
-                            var boundaryPoints = ComputeBoundary(laneSegment.mapWorldPositions, GetAdjacentLane(laneSegment, "left").mapWorldPositions);
+                            var boundaryPoints = ComputeBoundary(laneSegment.mapWorldPositions,
+                                GetAdjacentLane(laneSegment, "left").mapWorldPositions);
                             fakeBoundaryLine.mapWorldPositions = boundaryPoints;
 
                             // Set transform of the line as same as the first points
@@ -1614,7 +1666,8 @@ namespace Simulator.Editor
 
                             for (int j = 0; j < boundaryPoints.Count; j++)
                             {
-                                fakeBoundaryLine.mapLocalPositions.Add(fakeBoundaryLineObj.transform.InverseTransformPoint(boundaryPoints[j]));
+                                fakeBoundaryLine.mapLocalPositions.Add(
+                                    fakeBoundaryLineObj.transform.InverseTransformPoint(boundaryPoints[j]));
                             }
 
                             laneSegment.leftLineBoundry = fakeBoundaryLine;
@@ -1633,7 +1686,8 @@ namespace Simulator.Editor
                             resolution = 2f;
                         }
 
-                        var boundaryPoints = ComputeBoundary(laneSegment.mapWorldPositions, "left", laneSegment.displayLaneWidth / 2f, resolution);
+                        var boundaryPoints = ComputeBoundary(laneSegment.mapWorldPositions, "left",
+                            laneSegment.displayLaneWidth / 2f, resolution);
                         fakeBoundaryLine.mapWorldPositions = boundaryPoints;
 
                         // Set transform of the line as same as the first points
@@ -1642,7 +1696,8 @@ namespace Simulator.Editor
 
                         for (int j = 0; j < boundaryPoints.Count; j++)
                         {
-                            fakeBoundaryLine.mapLocalPositions.Add(fakeBoundaryLineObj.transform.InverseTransformPoint(boundaryPoints[j]));
+                            fakeBoundaryLine.mapLocalPositions.Add(
+                                fakeBoundaryLineObj.transform.InverseTransformPoint(boundaryPoints[j]));
                         }
 
                         laneSegment.leftLineBoundry = fakeBoundaryLine;
@@ -1659,14 +1714,16 @@ namespace Simulator.Editor
                     {
                         if (HasAdjacentLaneBoundaryInBetween(laneSegment, GetAdjacentLane(laneSegment, "right")))
                         {
-                            laneSegment.rightLineBoundry = GetAdjacentLaneBoundaryInBetween(laneSegment, GetAdjacentLane(laneSegment, "right"));
+                            laneSegment.rightLineBoundry =
+                                GetAdjacentLaneBoundaryInBetween(laneSegment, GetAdjacentLane(laneSegment, "right"));
                         }
                         else
                         {
                             var fakeBoundaryLineObj = new GameObject("FakeBoundaryLine_" + k);
                             var fakeBoundaryLine = fakeBoundaryLineObj.AddComponent<MapLine>();
 
-                            var boundaryPoints = ComputeBoundary(laneSegment.mapWorldPositions, GetAdjacentLane(laneSegment, "right").mapWorldPositions);
+                            var boundaryPoints = ComputeBoundary(laneSegment.mapWorldPositions,
+                                GetAdjacentLane(laneSegment, "right").mapWorldPositions);
                             fakeBoundaryLine.mapWorldPositions = boundaryPoints;
 
                             // Set transform of the line as same as the first points
@@ -1675,7 +1732,8 @@ namespace Simulator.Editor
 
                             for (int j = 0; j < boundaryPoints.Count; j++)
                             {
-                                fakeBoundaryLine.mapLocalPositions.Add(fakeBoundaryLineObj.transform.InverseTransformPoint(boundaryPoints[j]));
+                                fakeBoundaryLine.mapLocalPositions.Add(
+                                    fakeBoundaryLineObj.transform.InverseTransformPoint(boundaryPoints[j]));
                             }
 
                             laneSegment.rightLineBoundry = fakeBoundaryLine;
@@ -1694,7 +1752,8 @@ namespace Simulator.Editor
                             resolution = 2f;
                         }
 
-                        var boundaryPoints = ComputeBoundary(laneSegment.mapWorldPositions, "right", laneSegment.displayLaneWidth / 2f, resolution);
+                        var boundaryPoints = ComputeBoundary(laneSegment.mapWorldPositions, "right",
+                            laneSegment.displayLaneWidth / 2f, resolution);
                         fakeBoundaryLine.mapWorldPositions = boundaryPoints;
 
                         // Set transform of the line as same as the first points
@@ -1703,7 +1762,8 @@ namespace Simulator.Editor
 
                         for (int j = 0; j < boundaryPoints.Count; j++)
                         {
-                            fakeBoundaryLine.mapLocalPositions.Add(fakeBoundaryLineObj.transform.InverseTransformPoint(boundaryPoints[j]));
+                            fakeBoundaryLine.mapLocalPositions.Add(
+                                fakeBoundaryLineObj.transform.InverseTransformPoint(boundaryPoints[j]));
                         }
 
                         laneSegment.rightLineBoundry = fakeBoundaryLine;
@@ -1724,6 +1784,7 @@ namespace Simulator.Editor
             {
                 return (lane.leftLaneForward != null) || (lane.leftLaneReverse != null);
             }
+
             if (side == "right")
             {
                 return (lane.rightLaneForward != null) || (lane.rightLaneReverse != null);
@@ -1740,11 +1801,12 @@ namespace Simulator.Editor
                 {
                     return lane.leftLaneForward;
                 }
-                else if(lane.leftLaneReverse != null)
+                else if (lane.leftLaneReverse != null)
                 {
                     return lane.leftLaneReverse;
                 }
             }
+
             if (side == "right")
             {
                 if (lane.rightLaneForward != null)
@@ -1762,7 +1824,7 @@ namespace Simulator.Editor
 
         static bool HasAdjacentLaneBoundaryInBetween(MapTrafficLane lane1, MapTrafficLane lane2)
         {
-            if(lane1.leftLaneForward == lane2)
+            if (lane1.leftLaneForward == lane2)
             {
                 return lane2.rightLineBoundry != null;
             }
@@ -1839,38 +1901,43 @@ namespace Simulator.Editor
                                 target.AddRelation(relation);
                             }
                         }
+
                         target.Close();
                     }
 
                     // makes created .osm file more readable
-                    var strContents =File.ReadAllText(filePath);
+                    var strContents = File.ReadAllText(filePath);
                     try
                     {
                         XDocument doc = XDocument.Parse(strContents);
                         string xmlAttribute = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
-                        File.WriteAllText(filePath,xmlAttribute + Environment.NewLine + doc.ToString());
+                        File.WriteAllText(filePath, xmlAttribute + Environment.NewLine + doc.ToString());
                     }
                     catch (Exception)
                     {
                         // Handle and throw if fatal exception here; don't just ignore them
                     }
-                    
+
                     Debug.Log("Successfully generated and exported Lanelet2 HD Map!");
                     return true;
                 }
+
                 Debug.LogError("Failed to export Lanelet2 HD Map!");
             }
             catch (Exception exc)
             {
                 Debug.LogError($"Lanelet2 HD Map export unexpected error: {exc.Message}");
             }
+
             return false;
         }
 
         public void AddBoundaryTagToWay(LaneData laneData, Way leftWay, Way rightWay)
         {
             // set boundary type
-            if (leftWay.Tags.ContainsKey("type")) {}
+            if (leftWay.Tags.ContainsKey("type"))
+            {
+            }
             else if (laneData.mapLane.leftLineBoundry.lineType == MapData.LineType.DOTTED_WHITE)
             {
                 leftWay.Tags.Add(
@@ -1899,6 +1966,18 @@ namespace Simulator.Editor
             {
                 leftWay.Tags.Add(
                     new Tag("type", "line_thin")
+                );
+                leftWay.Tags.Add(
+                    new Tag("subtype", "solid")
+                );
+                leftWay.Tags.Add(
+                    new Tag("color", "white")
+                );
+            }
+            else if (laneData.mapLane.leftLineBoundry.lineType == MapData.LineType.ROAD_BORDER)
+            {
+                leftWay.Tags.Add(
+                    new Tag("type", "road_border")
                 );
                 leftWay.Tags.Add(
                     new Tag("subtype", "solid")
@@ -1954,7 +2033,9 @@ namespace Simulator.Editor
                 );
             }
 
-            if (rightWay.Tags.ContainsKey("type")) {}
+            if (rightWay.Tags.ContainsKey("type"))
+            {
+            }
             else if (laneData.mapLane.rightLineBoundry.lineType == MapData.LineType.DOTTED_WHITE)
             {
                 rightWay.Tags.Add(
@@ -1983,6 +2064,18 @@ namespace Simulator.Editor
             {
                 rightWay.Tags.Add(
                     new Tag("type", "line_thin")
+                );
+                rightWay.Tags.Add(
+                    new Tag("subtype", "solid")
+                );
+                rightWay.Tags.Add(
+                    new Tag("color", "white")
+                );
+            }
+            else if (laneData.mapLane.rightLineBoundry.lineType == MapData.LineType.ROAD_BORDER)
+            {
+                rightWay.Tags.Add(
+                    new Tag("type", "road_border")
                 );
                 rightWay.Tags.Add(
                     new Tag("subtype", "solid")
@@ -2038,7 +2131,5 @@ namespace Simulator.Editor
                 );
             }
         }
-
-
     }
 }

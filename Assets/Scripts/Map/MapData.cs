@@ -12,44 +12,26 @@ namespace Simulator.Map
 {
     public class MapData : MonoBehaviour
     {
-        [System.NonSerialized]
-        public Color laneColor = new Color(0f, 1f, 1f, 0.25f);
-        [System.NonSerialized]
-        public Color whiteLineColor = new Color(1f, 1f, 1f, 0.25f);
-        [System.NonSerialized]
-        public Color yellowLineColor = new Color(1f, 1f, 0f, 0.25f);
-        [System.NonSerialized]
-        public Color stopLineColor = new Color(1f, 0f, 0f, 0.25f);
-        [System.NonSerialized]
-        public Color virtualLineColor = new Color(1f, 0f, 0.5f, 0.25f);
-        [System.NonSerialized]
-        public Color stopSignColor = new Color(0.75f, 0f, 0f, 0.25f);
-        [System.NonSerialized]
-        public Color junctionColor = new Color(0.5f, 0.5f, 0.5f, 0.25f);
-        [System.NonSerialized]
-        public Color poleColor = new Color(0.5f, 0f, 1f, 0.25f);
-        [System.NonSerialized]
-        public Color speedBumpColor = new Color(0.75f, 1f, 0f, 0.25f);
-        [System.NonSerialized]
-        public Color crossWalkColor = new Color(1f, 1f, 1f, 0.25f);
-        [System.NonSerialized]
-        public Color clearAreaColor = new Color(0.5f, 0.5f, 0.5f, 0.25f);
-        [System.NonSerialized]
-        public Color parkingSpaceColor = new Color(1f, 0.92f, 0.016f, 0.25f);
-        [System.NonSerialized]
-        public Color curbColor = new Color(0f, 0f, 1f, 0.25f);
-        [System.NonSerialized]
-        public Color pedestrianColor = new Color(0f, 1f, 0f, 0.25f);
-        [System.NonSerialized]
-        public Color intersectionColor = new Color(1f, 0.5f, 0f, 0.25f);
-        [System.NonSerialized]
-        public Color tempWaypointColor = new Color(1f, 0f, 1f, 0.25f);
-        [System.NonSerialized]
-        public Color targetWaypointColor = new Color(1f, 1f, 0f, 1f);
-        [System.NonSerialized]
-        public Color selectedColor = new Color(0f, 0f, 0f, 0f);
-        [System.NonSerialized]
-        public bool selected = false;
+        [System.NonSerialized] public Color laneColor = new Color(0f, 1f, 1f, 0.25f);
+        [System.NonSerialized] public Color whiteLineColor = new Color(1f, 1f, 1f, 0.25f);
+        [System.NonSerialized] public Color yellowLineColor = new Color(1f, 1f, 0f, 0.25f);
+        [System.NonSerialized] public Color stopLineColor = new Color(1f, 0f, 0f, 0.25f);
+        [System.NonSerialized] public Color virtualLineColor = new Color(1f, 0f, 0.5f, 0.25f);
+        [System.NonSerialized] public Color stopSignColor = new Color(0.75f, 0f, 0f, 0.25f);
+        [System.NonSerialized] public Color junctionColor = new Color(0.5f, 0.5f, 0.5f, 0.25f);
+        [System.NonSerialized] public Color poleColor = new Color(0.5f, 0f, 1f, 0.25f);
+        [System.NonSerialized] public Color speedBumpColor = new Color(0.75f, 1f, 0f, 0.25f);
+        [System.NonSerialized] public Color crossWalkColor = new Color(1f, 1f, 1f, 0.25f);
+        [System.NonSerialized] public Color clearAreaColor = new Color(0.5f, 0.5f, 0.5f, 0.25f);
+        [System.NonSerialized] public Color parkingSpaceColor = new Color(1f, 0.92f, 0.016f, 0.25f);
+        [System.NonSerialized] public Color curbColor = new Color(0f, 0f, 1f, 0.25f);
+        [System.NonSerialized] public Color pedestrianColor = new Color(0f, 1f, 0f, 0.25f);
+        [System.NonSerialized] public Color intersectionColor = new Color(1f, 0.5f, 0f, 0.25f);
+        [System.NonSerialized] public Color roadBorderColor = new Color(1f, 0.5f, 0f, 0.25f);
+        [System.NonSerialized] public Color tempWaypointColor = new Color(1f, 0f, 1f, 0.25f);
+        [System.NonSerialized] public Color targetWaypointColor = new Color(1f, 1f, 0f, 1f);
+        [System.NonSerialized] public Color selectedColor = new Color(0f, 0f, 0f, 0f);
+        [System.NonSerialized] public bool selected = false;
 
         public enum LaneTurnType // TODO changed to start at 0 index, why 1?
         {
@@ -71,6 +53,8 @@ namespace Simulator.Map
             CURB = 6,
             VIRTUAL = 7,
             STOP = 8,
+            ROAD_BORDER = 9,
+            SPEED_BUMP = 10,
         };
 
         [System.Serializable]
