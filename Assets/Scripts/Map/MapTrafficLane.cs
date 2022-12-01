@@ -45,6 +45,9 @@ namespace Simulator.Map
         public MapLine rightLineBoundry;
         public MapLine stopLine;
 
+        public bool hasSpeedBump;
+        public List<MapSpeedBump> speedBumps = new List<MapSpeedBump>();
+        
         public List<MapTrafficLane> yieldToLanes = new List<MapTrafficLane>(); // TODO calc
         [System.NonSerialized]
         public List<MapTrafficLane> nextConnectedLanes = new List<MapTrafficLane>();

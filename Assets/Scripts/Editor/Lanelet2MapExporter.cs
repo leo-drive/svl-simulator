@@ -15,6 +15,7 @@ using Simulator.Map;
 using OsmSharp;
 using OsmSharp.Streams;
 using OsmSharp.Tags;
+using Schemas;
 
 namespace Simulator.Editor
 {
@@ -209,9 +210,23 @@ namespace Simulator.Editor
             }
 
             //process speed bump
+            var speedBumpsLanesData = new Dictionary<SpeedBumpData, List<LaneData>>();
+            // foreach (var laneData in LanesData)
+            // {
+            //     if (laneData.mapLane.hasSpeedBump)
+            //     {
+            //         foreach (var mapSpeedBump in laneData.mapLane.speedBumps)
+            //         {
+            //             var speedBumpLineData = LineData.Line2LineData[mapSpeedBump];
+            //             speedBumpsLanesData.GetOrCreate(speedBumpLineData).Add(laneData);
+            //         }
+            //     }
+            // }
+
             foreach (var speedBumpData in speedBumpsData)
             {
-                map.Add(CreateLaneletFromSpeedBump(speedBumpData));
+                // map.Add(CreateLaneletFromSpeedBump(speedBumpData));
+                map.Add(CreateAreaFromSpeedBump(speedBumpData));
             }
 
             // process parking space
@@ -851,7 +866,63 @@ namespace Simulator.Editor
             return CreateRelationFromMembers(members, tags);
         }
 
-        public Relation CreateLaneletFromSpeedBump(SpeedBumpData speedBumpData)
+        // public Relation CreateLaneletFromSpeedBump(SpeedBumpData speedBumpData)
+        // {
+        //     Vector3 p0 = speedBumpData.go.transform.TransformPoint(speedBumpData.mapLocalPositions[0]);
+        //     Vector3 p1 = speedBumpData.go.transform.TransformPoint(speedBumpData.mapLocalPositions[1]);
+        //     Vector3 p2 = speedBumpData.go.transform.TransformPoint(speedBumpData.mapLocalPositions[2]);
+        //     Vector3 p3 = speedBumpData.go.transform.TransformPoint(speedBumpData.mapLocalPositions[3]);
+        //
+        //     Node n0 = CreateNodeFromPoint(p0);
+        //     Node n1 = CreateNodeFromPoint(p1);
+        //     Node n2 = CreateNodeFromPoint(p2);
+        //     Node n3 = CreateNodeFromPoint(p3);
+        //
+        //     // check the distance between each point
+        //     double d0 = Vector3.Distance(p0, p1);
+        //     double d1 = Vector3.Distance(p0, p3);
+        //
+        //     Way wayLeft;
+        //     Way wayRight;
+        //     if (d0 >= d1) // create way 0-1, 2-3
+        //     {
+        //         wayLeft = CreateWayFromNodes(new List<Node>() { n0, n1 });
+        //         wayRight = CreateWayFromNodes(new List<Node>() { n2, n3 });
+        //     }
+        //     else // create way 0-3, 1-2
+        //     {
+        //         wayLeft = CreateWayFromNodes(new List<Node>() { n0, n3 });
+        //         wayRight = CreateWayFromNodes(new List<Node>() { n1, n2 });
+        //     }
+        //
+        //     wayLeft.Tags.Add(
+        //         new Tag("type", "speed_bump_marking")
+        //     );
+        //     wayRight.Tags.Add(
+        //         new Tag("type", "speed_bump_marking")
+        //     );
+        //
+        //     // create lanelet
+        //
+        //     var tags = new TagsCollection(
+        //         new Tag("participant:vehicle", "yes"),
+        //         new Tag("subtype", "speed_bump"),
+        //         new Tag("height", speedBumpData.mapSpeedBump.height.ToString("F")),
+        //         new Tag("type", "lanelet")
+        //     );
+        //
+        //     var members = new[]
+        //     {
+        //         new RelationMember(wayLeft.Id.Value, "left", OsmGeoType.Way),
+        //         new RelationMember(wayRight.Id.Value, "right", OsmGeoType.Way),
+        //     };
+        //
+        //     return CreateRelationFromMembers(members, tags);
+        // }
+
+        //mozzz
+
+        public Relation CreateAreaFromSpeedBump(SpeedBumpData speedBumpData)
         {
             Vector3 p0 = speedBumpData.go.transform.TransformPoint(speedBumpData.mapLocalPositions[0]);
             Vector3 p1 = speedBumpData.go.transform.TransformPoint(speedBumpData.mapLocalPositions[1]);
@@ -863,45 +934,28 @@ namespace Simulator.Editor
             Node n2 = CreateNodeFromPoint(p2);
             Node n3 = CreateNodeFromPoint(p3);
 
-            // check the distance between each point
-            double d0 = Vector3.Distance(p0, p1);
-            double d1 = Vector3.Distance(p0, p3);
-
-            Way wayLeft;
-            Way wayRight;
-            if (d0 >= d1) // create way 0-1, 2-3
-            {
-                wayLeft = CreateWayFromNodes(new List<Node>() { n0, n1 });
-                wayRight = CreateWayFromNodes(new List<Node>() { n2, n3 });
-            }
-            else // create way 0-3, 1-2
-            {
-                wayLeft = CreateWayFromNodes(new List<Node>() { n0, n3 });
-                wayRight = CreateWayFromNodes(new List<Node>() { n1, n2 });
-            }
-
-            wayLeft.Tags.Add(
-                new Tag("type", "speed_bump_marking")
+            //create area and assign tags
+            Way areaBorder;
+            areaBorder = CreateWayFromNodes(new List<Node>() { n0, n1, n2, n3 });
+            areaBorder.Tags.Add(
+                new Tag("type", "speed_bump")
             );
-            wayRight.Tags.Add(
-                new Tag("type", "speed_bump_marking")
+            areaBorder.Tags.Add(
+                new Tag("height", speedBumpData.mapSpeedBump.height.ToString("F"))
             );
+            areaBorder.Tags.Add(new Tag("area", "yes"));
 
-            // create lanelet
+            // assign tags and create regulatory element
 
             var tags = new TagsCollection(
-                new Tag("participant:vehicle", "yes"),
                 new Tag("subtype", "speed_bump"),
-                new Tag("height", speedBumpData.mapSpeedBump.height.ToString("F")),
-                new Tag("type", "lanelet")
+                new Tag("type", "regulatory_element")
             );
 
             var members = new[]
             {
-                new RelationMember(wayLeft.Id.Value, "left", OsmGeoType.Way),
-                new RelationMember(wayRight.Id.Value, "right", OsmGeoType.Way),
+                new RelationMember(areaBorder.Id.Value, "refers", OsmGeoType.Way),
             };
-
             return CreateRelationFromMembers(members, tags);
         }
 
