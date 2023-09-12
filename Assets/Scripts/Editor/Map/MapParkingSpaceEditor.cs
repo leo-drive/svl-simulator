@@ -14,134 +14,134 @@ using Simulator.Map;
 [CustomEditor(typeof(MapParkingSpace)), CanEditMultipleObjects]
 public class MapParkingSpaceEditor : Editor
 {
-    private float targetWidth = 3;
-    private float targetLength = 6;
+    // private float targetWidth = 3;
+    // private float targetLength = 6;
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector();
         MapParkingSpace mapParkingSpace = (MapParkingSpace)target;
 
-        GUILayout.Label("Length: " + mapParkingSpace.Length);
-        GUILayout.Label("Width: " + mapParkingSpace.Width);
+        // GUILayout.Label("Length: " + mapParkingSpace.Length);
+        // GUILayout.Label("Width: " + mapParkingSpace.Width);
 
-        GUILayout.BeginHorizontal();
-        if (GUILayout.Button("Force right angle by moving right side"))
-        {
-            MakeEdit(space =>
-            {
-                var forward = space.mapWorldPositions[2] - space.mapWorldPositions[1];
-                var right = Quaternion.AngleAxis(90, Vector3.up) * forward.normalized;
-                var fixed0 = space.mapWorldPositions[1] +
-                             Vector3.Dot(space.mapWorldPositions[0] - space.mapWorldPositions[1],
-                                 right) * right;
-                var fixed3 = space.mapWorldPositions[2] +
-                             Vector3.Dot(space.mapWorldPositions[3] - space.mapWorldPositions[2],
-                                 right) * right;
-                space.mapLocalPositions[0] = space.transform.InverseTransformPoint(fixed0);
-                space.mapLocalPositions[3] = space.transform.InverseTransformPoint(fixed3);
-                SceneView.RepaintAll();
-            }, "Force right angle by moving right side");
-        }
-        if (GUILayout.Button("Force right angle by moving left side"))
-        {
-            MakeEdit(space =>
-            {
-                var forward = space.mapWorldPositions[3] - space.mapWorldPositions[0];
-                var right = Quaternion.AngleAxis(90, Vector3.up) * forward.normalized;
-                var fixed2 = space.mapWorldPositions[3] -
-                             Vector3.Dot(space.mapWorldPositions[0] - space.mapWorldPositions[1],
-                                 right) * right;
-                var fixed1 = space.mapWorldPositions[0] -
-                             Vector3.Dot(space.mapWorldPositions[3] - space.mapWorldPositions[2],
-                                 right) * right;
-                space.mapLocalPositions[2] = space.transform.InverseTransformPoint(fixed2);
-                space.mapLocalPositions[1] = space.transform.InverseTransformPoint(fixed1);
-                SceneView.RepaintAll();
-            }, "Force right angle by moving left side");
-        }
-        GUILayout.EndHorizontal();
-        if (GUILayout.Button("Make right side parallel to the left side"))
-        {
-            MakeEdit(space =>
-            {
-                var offset = 0.5f * ((space.mapWorldPositions[0] - space.mapWorldPositions[1]) + (space.mapWorldPositions[3] - space.mapWorldPositions[2]));
-                space.mapLocalPositions[0] = space.transform.InverseTransformPoint(space.mapWorldPositions[1] + offset);
-                space.mapLocalPositions[3] = space.transform.InverseTransformPoint(space.mapWorldPositions[2] + offset);
-            }, "Make right side parallel to the left side");
-        }
-        GUILayout.BeginHorizontal();
-        targetWidth = EditorGUILayout.FloatField("Set width to (only with right angle)", targetWidth);
-        GUILayout.EndHorizontal();
-        GUILayout.BeginHorizontal();
-        if (GUILayout.Button("By moving left side"))
-        {
-            MakeEdit(space =>
-            {
-                space.mapLocalPositions[2] = space.transform.InverseTransformPoint(space.mapWorldPositions[3] + (space.mapWorldPositions[2] - space.mapWorldPositions[3]).normalized * targetWidth);
-                space.mapLocalPositions[1] = space.transform.InverseTransformPoint(space.mapWorldPositions[0] + (space.mapWorldPositions[1] - space.mapWorldPositions[0]).normalized * targetWidth);
-            }, "Set width left");
-        }
-        if (GUILayout.Button("By moving right side"))
-        {
-            MakeEdit(space =>
-            {
-                space.mapLocalPositions[3] = space.transform.InverseTransformPoint(space.mapWorldPositions[2] + (space.mapWorldPositions[3] - space.mapWorldPositions[2]).normalized * targetWidth);
-                space.mapLocalPositions[0] = space.transform.InverseTransformPoint(space.mapWorldPositions[1] + (space.mapWorldPositions[0] - space.mapWorldPositions[1]).normalized * targetWidth);
-            }, "Set width right");
-        }
-        GUILayout.EndHorizontal();
-        GUILayout.BeginHorizontal();
-        targetLength = EditorGUILayout.FloatField("Set length to", targetLength);
-        GUILayout.EndHorizontal();
-        GUILayout.BeginHorizontal();
-        if (GUILayout.Button("By moving front"))
-        {
-            MakeEdit(space =>
-            {
-                var offset = (space.MiddleExit - space.MiddleEnter).normalized * targetLength;
-                space.mapLocalPositions[2] = space.transform.InverseTransformPoint(space.mapWorldPositions[1] + offset);
-                space.mapLocalPositions[3] = space.transform.InverseTransformPoint(space.mapWorldPositions[0] + offset);
-            }, "By moving front");
-        }
-        if (GUILayout.Button("By moving back"))
-        {
-            MakeEdit(space =>
-            {
-                var offset = (space.MiddleExit - space.MiddleEnter).normalized * targetLength;
-                space.mapLocalPositions[0] =
-                    space.transform.InverseTransformPoint(space.mapWorldPositions[3] - offset);
-                space.mapLocalPositions[1] =
-                    space.transform.InverseTransformPoint(space.mapWorldPositions[2] - offset);
-            }, "Set length back");
-        }
-        GUILayout.EndHorizontal();
-        if (GUILayout.Button("Fix Y"))
-        {
-            MakeEdit(space =>
-            {
-                for (int i = 0; i < space.mapWorldPositions.Count; i++)
-                {
-                    Ray ray = new Ray(space.mapWorldPositions[i] + Vector3.up * 2, Vector3.down);
-                    RaycastHit hit;
-                    if (Physics.Raycast(ray, out hit, 4))
-                    {
-                        space.mapLocalPositions[i] = space.transform.InverseTransformPoint(hit.point);
-                    }
-                }
-            }, "Fix Y");
-        }
+        // GUILayout.BeginHorizontal();
+        // if (GUILayout.Button("Force right angle by moving right side"))
+        // {
+        //     MakeEdit(space =>
+        //     {
+        //         var forward = space.mapWorldPositions[2] - space.mapWorldPositions[1];
+        //         var right = Quaternion.AngleAxis(90, Vector3.up) * forward.normalized;
+        //         var fixed0 = space.mapWorldPositions[1] +
+        //                      Vector3.Dot(space.mapWorldPositions[0] - space.mapWorldPositions[1],
+        //                          right) * right;
+        //         var fixed3 = space.mapWorldPositions[2] +
+        //                      Vector3.Dot(space.mapWorldPositions[3] - space.mapWorldPositions[2],
+        //                          right) * right;
+        //         space.mapLocalPositions[0] = space.transform.InverseTransformPoint(fixed0);
+        //         space.mapLocalPositions[3] = space.transform.InverseTransformPoint(fixed3);
+        //         SceneView.RepaintAll();
+        //     }, "Force right angle by moving right side");
+        // }
+        // if (GUILayout.Button("Force right angle by moving left side"))
+        // {
+        //     MakeEdit(space =>
+        //     {
+        //         var forward = space.mapWorldPositions[3] - space.mapWorldPositions[0];
+        //         var right = Quaternion.AngleAxis(90, Vector3.up) * forward.normalized;
+        //         var fixed2 = space.mapWorldPositions[3] -
+        //                      Vector3.Dot(space.mapWorldPositions[0] - space.mapWorldPositions[1],
+        //                          right) * right;
+        //         var fixed1 = space.mapWorldPositions[0] -
+        //                      Vector3.Dot(space.mapWorldPositions[3] - space.mapWorldPositions[2],
+        //                          right) * right;
+        //         space.mapLocalPositions[2] = space.transform.InverseTransformPoint(fixed2);
+        //         space.mapLocalPositions[1] = space.transform.InverseTransformPoint(fixed1);
+        //         SceneView.RepaintAll();
+        //     }, "Force right angle by moving left side");
+        // }
+        // GUILayout.EndHorizontal();
+        // if (GUILayout.Button("Make right side parallel to the left side"))
+        // {
+        //     MakeEdit(space =>
+        //     {
+        //         var offset = 0.5f * ((space.mapWorldPositions[0] - space.mapWorldPositions[1]) + (space.mapWorldPositions[3] - space.mapWorldPositions[2]));
+        //         space.mapLocalPositions[0] = space.transform.InverseTransformPoint(space.mapWorldPositions[1] + offset);
+        //         space.mapLocalPositions[3] = space.transform.InverseTransformPoint(space.mapWorldPositions[2] + offset);
+        //     }, "Make right side parallel to the left side");
+        // }
+        // GUILayout.BeginHorizontal();
+        // targetWidth = EditorGUILayout.FloatField("Set width to (only with right angle)", targetWidth);
+        // GUILayout.EndHorizontal();
+        // GUILayout.BeginHorizontal();
+        // if (GUILayout.Button("By moving left side"))
+        // {
+        //     MakeEdit(space =>
+        //     {
+        //         space.mapLocalPositions[2] = space.transform.InverseTransformPoint(space.mapWorldPositions[3] + (space.mapWorldPositions[2] - space.mapWorldPositions[3]).normalized * targetWidth);
+        //         space.mapLocalPositions[1] = space.transform.InverseTransformPoint(space.mapWorldPositions[0] + (space.mapWorldPositions[1] - space.mapWorldPositions[0]).normalized * targetWidth);
+        //     }, "Set width left");
+        // }
+        // if (GUILayout.Button("By moving right side"))
+        // {
+        //     MakeEdit(space =>
+        //     {
+        //         space.mapLocalPositions[3] = space.transform.InverseTransformPoint(space.mapWorldPositions[2] + (space.mapWorldPositions[3] - space.mapWorldPositions[2]).normalized * targetWidth);
+        //         space.mapLocalPositions[0] = space.transform.InverseTransformPoint(space.mapWorldPositions[1] + (space.mapWorldPositions[0] - space.mapWorldPositions[1]).normalized * targetWidth);
+        //     }, "Set width right");
+        // }
+        // GUILayout.EndHorizontal();
+        // GUILayout.BeginHorizontal();
+        // targetLength = EditorGUILayout.FloatField("Set length to", targetLength);
+        // GUILayout.EndHorizontal();
+        // GUILayout.BeginHorizontal();
+        // if (GUILayout.Button("By moving front"))
+        // {
+        //     MakeEdit(space =>
+        //     {
+        //         var offset = (space.MiddleExit - space.MiddleEnter).normalized * targetLength;
+        //         space.mapLocalPositions[2] = space.transform.InverseTransformPoint(space.mapWorldPositions[1] + offset);
+        //         space.mapLocalPositions[3] = space.transform.InverseTransformPoint(space.mapWorldPositions[0] + offset);
+        //     }, "By moving front");
+        // }
+        // if (GUILayout.Button("By moving back"))
+        // {
+        //     MakeEdit(space =>
+        //     {
+        //         var offset = (space.MiddleExit - space.MiddleEnter).normalized * targetLength;
+        //         space.mapLocalPositions[0] =
+        //             space.transform.InverseTransformPoint(space.mapWorldPositions[3] - offset);
+        //         space.mapLocalPositions[1] =
+        //             space.transform.InverseTransformPoint(space.mapWorldPositions[2] - offset);
+        //     }, "Set length back");
+        // }
+        // GUILayout.EndHorizontal();
+        // if (GUILayout.Button("Fix Y"))
+        // {
+        //     MakeEdit(space =>
+        //     {
+        //         for (int i = 0; i < space.mapWorldPositions.Count; i++)
+        //         {
+        //             Ray ray = new Ray(space.mapWorldPositions[i] + Vector3.up * 2, Vector3.down);
+        //             RaycastHit hit;
+        //             if (Physics.Raycast(ray, out hit, 4))
+        //             {
+        //                 space.mapLocalPositions[i] = space.transform.InverseTransformPoint(hit.point);
+        //             }
+        //         }
+        //     }, "Fix Y");
+        // }
     }
 
-    private void MakeEdit(Action<MapParkingSpace> action, string actionName)
-    {
-        Undo.RecordObjects(targets, actionName);
-        foreach (MapParkingSpace space in targets)
-        {
-            space.RefreshWorldPositions();
-            action(space);
-        }
-        SceneView.RepaintAll();
-    }
+    // private void MakeEdit(Action<MapParkingSpace> action, string actionName)
+    // {
+    //     Undo.RecordObjects(targets, actionName);
+    //     foreach (MapParkingSpace space in targets)
+    //     {
+    //         space.RefreshWorldPositions();
+    //         action(space);
+    //     }
+    //     SceneView.RepaintAll();
+    // }
 
     protected virtual void OnSceneGUI()
     {
@@ -159,30 +159,67 @@ public class MapParkingSpaceEditor : Editor
 
                 if (oldWorld != newTargetPosition)
                 {
-                    Undo.RecordObject(vmMapParkingSpace, "Speed Bump points change");
-                    vmMapParkingSpace.mapLocalPositions[i] = vmMapParkingSpace.transform.InverseTransformPoint(newTargetPosition);
+                    Undo.RecordObject(vmMapParkingSpace, "Parking Space points change");
+                    vmMapParkingSpace.mapLocalPositions[i] =
+                        vmMapParkingSpace.transform.InverseTransformPoint(newTargetPosition);
                 }
             }
-
         }
-
-        if (vmMapParkingSpace.DisplayHandles)
+        //parking space guidelines because parking spaces for Autoware annotated as lines with a width value.
+        if (vmMapParkingSpace.mapLocalPositions.Count == 2)
         {
-            for (int i = 0; i < vmMapParkingSpace.mapLocalPositions.Count; i++)
+            var left = new Vector3[vmMapParkingSpace.mapLocalPositions.Count];
+            var right = new Vector3[vmMapParkingSpace.mapLocalPositions.Count];
+            var halfLaneWidth = vmMapParkingSpace.parkingSpaceWidth / 2;
+            var laneTransform = vmMapParkingSpace.transform;
+
+            var a = laneTransform.TransformPoint(vmMapParkingSpace.mapLocalPositions[0]);
+            for (int i = 1; i < vmMapParkingSpace.mapLocalPositions.Count; i++)
             {
-                int iPlus1 = (i + 1) % vmMapParkingSpace.mapLocalPositions.Count;
-                var iWorld = vmMapParkingSpace.transform.TransformPoint(vmMapParkingSpace.mapLocalPositions[i]);
-                var iPlus1World = vmMapParkingSpace.transform.TransformPoint(vmMapParkingSpace.mapLocalPositions[iPlus1]);
-                var oldMiddleWorld = 0.5f * (iWorld + iPlus1World);
-                Vector3 newTargetPosition = Handles.PositionHandle(oldMiddleWorld, Quaternion.identity);
-                if (oldMiddleWorld != newTargetPosition)
+                var b = laneTransform.TransformPoint(vmMapParkingSpace.mapLocalPositions[i]);
+                left[i - 1] = (GetPerpPoint(a, b, halfLaneWidth));
+                right[i - 1] = (GetPerpPoint(a, b, -halfLaneWidth));
+
+                if (i == vmMapParkingSpace.mapLocalPositions.Count - 1)
                 {
-                    var diff = newTargetPosition - oldMiddleWorld;
-                    Undo.RecordObject(vmMapParkingSpace, "Speed Bump points change");
-                    vmMapParkingSpace.mapLocalPositions[i] = vmMapParkingSpace.transform.InverseTransformPoint(iWorld + diff);
-                    vmMapParkingSpace.mapLocalPositions[iPlus1] = vmMapParkingSpace.transform.InverseTransformPoint(iPlus1World + diff);
+                    left[i] = (GetPerpPoint(b, a, -halfLaneWidth));
+                    right[i] = (GetPerpPoint(b, a, halfLaneWidth));
                 }
+
+                a = b;
             }
+
+            Handles.DrawAAPolyLine(left);
+            Handles.DrawAAPolyLine(right);
         }
+
+
+        // if (vmMapParkingSpace.DisplayHandles)
+        // {
+        //     for (int i = 0; i < vmMapParkingSpace.mapLocalPositions.Count; i++)
+        //     {
+        //         int iPlus1 = (i + 1) % vmMapParkingSpace.mapLocalPositions.Count;
+        //         var iWorld = vmMapParkingSpace.transform.TransformPoint(vmMapParkingSpace.mapLocalPositions[i]);
+        //         var iPlus1World = vmMapParkingSpace.transform.TransformPoint(vmMapParkingSpace.mapLocalPositions[iPlus1]);
+        //         var oldMiddleWorld = 0.5f * (iWorld + iPlus1World);
+        //         Vector3 newTargetPosition = Handles.PositionHandle(oldMiddleWorld, Quaternion.identity);
+        //         if (oldMiddleWorld != newTargetPosition)
+        //         {
+        //             var diff = newTargetPosition - oldMiddleWorld;
+        //             Undo.RecordObject(vmMapParkingSpace, "Speed Bump points change");
+        //             vmMapParkingSpace.mapLocalPositions[i] = vmMapParkingSpace.transform.InverseTransformPoint(iWorld + diff);
+        //             vmMapParkingSpace.mapLocalPositions[iPlus1] = vmMapParkingSpace.transform.InverseTransformPoint(iPlus1World + diff);
+        //         }
+        //     }
+        // }
+    }
+
+    //duplicate from the bottom of MapLaneEditor.cs sorry :(
+    private static Vector3 GetPerpPoint(Vector3 A, Vector3 B, float distance)
+    {
+        var dir = Vector3.Normalize(B - A);
+        var normal = new Vector3(-dir.z, dir.y, dir.x);
+
+        return A + normal * distance;
     }
 }

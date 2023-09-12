@@ -691,7 +691,7 @@ public class MapAnnotations : EditorWindow
                 EditorGUILayout.LabelField("Create Parkingspace", titleLabelStyle, GUILayout.ExpandWidth(true));
                 GUILayout.Space(20);
 
-                if (waypointTotal < 4) waypointTotal = 4;
+                //if (waypointTotal < 4) waypointTotal = 4;
                 if (!EditorGUIUtility.isProSkin)
                     GUI.backgroundColor = nonProColor;
 
@@ -1756,11 +1756,11 @@ public class MapAnnotations : EditorWindow
         }
 
         tool.tempWaypoints.RemoveAll(p => p == null);
-        if (tool.tempWaypoints.Count != 4)
-        {
-            Debug.Log("You need four temp waypoints for this operation");
-            return;
-        }
+        // if (tool.tempWaypoints.Count != 4)
+        // {
+        //     Debug.Log("You need four temp waypoints for this operation");
+        //     return;
+        // }
 
         var newGo = new GameObject("MapParkingSpace");
         Undo.RegisterCreatedObjectUndo(newGo, nameof(newGo));

@@ -21,6 +21,9 @@ namespace Simulator.Map
         public bool displayLane = false;
         public bool needSelfReverseLane = false;
         public bool isSelfReverseLane = false;
+        public bool isRoadShoulder = false;
+        public bool isBicycleLane = false;
+        public bool isNoDrivableLane = false;
         public string otherSelfReverseLaneId = null;
 
         public float displayLaneWidth = 3.7f; // apollo default lane width
@@ -44,9 +47,10 @@ namespace Simulator.Map
         public MapLine leftLineBoundry;
         public MapLine rightLineBoundry;
         public MapLine stopLine;
-
-        public bool hasSpeedBump;
+        
         public List<MapSpeedBump> speedBumps = new List<MapSpeedBump>();
+        
+        public List<MapTrafficLane> yieldingTrafficLanes = new List<MapTrafficLane>();
         
         public List<MapTrafficLane> yieldToLanes = new List<MapTrafficLane>(); // TODO calc
         [System.NonSerialized]

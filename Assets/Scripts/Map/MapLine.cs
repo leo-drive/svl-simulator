@@ -37,7 +37,6 @@ namespace Simulator.Map
                 case LineType.SOLID_WHITE:
                 case LineType.DOTTED_WHITE:
                 case LineType.DOUBLE_WHITE:
-
                     typeColor = whiteLineColor;
                     break;
                 case LineType.SOLID_YELLOW:
@@ -59,6 +58,13 @@ namespace Simulator.Map
                     break;
                 case LineType.SPEED_BUMP:
                     typeColor = speedBumpColor;
+                    break;
+                case LineType.BIKE_MARKING_SOLID:
+                case LineType.BIKE_MARKING_DASHED:
+                    typeColor = bikeMarkingColor;
+                    break;
+                case LineType.PARKING_LINE:
+                    typeColor = parkingSpaceColor;
                     break;
                 default:
                     break;

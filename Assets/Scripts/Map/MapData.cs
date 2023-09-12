@@ -17,7 +17,7 @@ namespace Simulator.Map
         [System.NonSerialized] public Color yellowLineColor = new Color(1f, 1f, 0f, 0.25f);
         [System.NonSerialized] public Color stopLineColor = new Color(1f, 0f, 0f, 0.25f);
         [System.NonSerialized] public Color virtualLineColor = new Color(1f, 0f, 0.5f, 0.25f);
-        [System.NonSerialized] public Color stopSignColor = new Color(0.75f, 0f, 0f, 0.25f);
+        [System.NonSerialized] public Color stopSignColor = new Color(1f, 0f, 0f, 0.25f);
         [System.NonSerialized] public Color junctionColor = new Color(0.5f, 0.5f, 0.5f, 0.25f);
         [System.NonSerialized] public Color poleColor = new Color(0.5f, 0f, 1f, 0.25f);
         [System.NonSerialized] public Color speedBumpColor = new Color(0.75f, 1f, 0f, 0.25f);
@@ -26,8 +26,9 @@ namespace Simulator.Map
         [System.NonSerialized] public Color parkingSpaceColor = new Color(1f, 0.92f, 0.016f, 0.25f);
         [System.NonSerialized] public Color curbColor = new Color(0f, 0f, 1f, 0.25f);
         [System.NonSerialized] public Color pedestrianColor = new Color(0f, 1f, 0f, 0.25f);
-        [System.NonSerialized] public Color intersectionColor = new Color(1f, 0.5f, 0f, 0.25f);
-        [System.NonSerialized] public Color roadBorderColor = new Color(1f, 0.5f, 0f, 0.25f);
+        [System.NonSerialized] public Color intersectionColor = new Color(1f, 0.6f, 0f, 0.25f);
+        [System.NonSerialized] public Color roadBorderColor = new Color(1f, 0.3f, 0f, 0.25f);
+        [System.NonSerialized] public Color bikeMarkingColor = new Color(0.7f, 0.5f, 1f, 0.25f);
         [System.NonSerialized] public Color tempWaypointColor = new Color(1f, 0f, 1f, 0.25f);
         [System.NonSerialized] public Color targetWaypointColor = new Color(1f, 1f, 0f, 1f);
         [System.NonSerialized] public Color selectedColor = new Color(0f, 0f, 0f, 0f);
@@ -55,6 +56,10 @@ namespace Simulator.Map
             STOP = 8,
             ROAD_BORDER = 9,
             SPEED_BUMP = 10,
+            BIKE_MARKING_SOLID = 11,
+            BIKE_MARKING_DASHED = 12,
+            PARKING_LINE = 13,
+            
         };
 
         [System.Serializable]

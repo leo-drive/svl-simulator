@@ -64,11 +64,17 @@ namespace Simulator.Editor
         public LineData rightLineData = null;
         public laneType type = laneType.driving;
         public float speedLimit = 20f;
+        public bool isRoadShoulder;
+        public bool isBicycleLane;
+        public bool isNoDrivableLane;
         public LaneData(MapTrafficLane lane) : base(lane)
         {
             mapLane = lane;
             Lane2LaneData[lane] = this;
             speedLimit = lane.speedLimit;
+            isRoadShoulder = lane.isRoadShoulder;
+            isBicycleLane = lane.isBicycleLane;
+            isNoDrivableLane = lane.isNoDrivableLane;
         }
 
         public LaneData(MapPedestrianLane mapPedestrianLane) : base(mapPedestrianLane)

@@ -7,15 +7,20 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using UnityEngine;
 using Simulator.Map;
 using OsmSharp;
+using OsmSharp.API;
 using OsmSharp.Streams;
 using OsmSharp.Tags;
 using Schemas;
+using Simulator.Editor.Autoware;
+using UnityEditor;
+using Node = OsmSharp.Node;
 
 namespace Simulator.Editor
 {
@@ -73,7 +78,6 @@ namespace Simulator.Editor
 
             MapAnnotationData.GetIntersections();
             MapAnnotationData.GetTrafficLanes();
-
             MapOrigin = MapOrigin.Find();
 
             // Initial collection
@@ -120,13 +124,27 @@ namespace Simulator.Editor
             // Link points in each speedbump
             AlignPointsInSpeedBump(speedBumpsData);
 
+            // var speedBumpLanesData = new Dictionary<SpeedBumpData, List<LaneData>>();
+            // foreach (var laneData in LanesData)
+            // {
+            //     if (laneData.mapLane.hasSpeedBump)
+            //     {
+            //         foreach (var speedBump in laneData.mapLane.speedBumps)
+            //         {
+            //             var speedBumpData = speedBumpsData;
+            //             speedBumpLanesData.GetOrCreate(speedBumpData).Add(laneData);
+            //             
+            //         }
+            //     }
+            // }
+
             var parkingSpacesData = new List<ParkingSpaceData>(parkingSpaces.Select(x => new ParkingSpaceData(x)));
             // Link Points in each parking area
             AlignPointsInParkingSpace(parkingSpacesData);
 
             // Link before and after segment for each line segment based on lane's predecessor/successor
             AlignPointsInLines(LanesData);
-            CreateLaneletsFromLanes(LanesData);
+            var laneToIDDictionary = CreateLaneletsFromLanes(LanesData);
 
             // process stop lines - create stop lines
             foreach (var lineData in LinesData)
@@ -210,44 +228,152 @@ namespace Simulator.Editor
             }
 
             //process speed bump
-            var speedBumpsLanesData = new Dictionary<SpeedBumpData, List<LaneData>>();
-            // foreach (var laneData in LanesData)
-            // {
-            //     if (laneData.mapLane.hasSpeedBump)
-            //     {
-            //         foreach (var mapSpeedBump in laneData.mapLane.speedBumps)
-            //         {
-            //             var speedBumpLineData = LineData.Line2LineData[mapSpeedBump];
-            //             speedBumpsLanesData.GetOrCreate(speedBumpLineData).Add(laneData);
-            //         }
-            //     }
-            // }
+            var speedBumpAndRelationIDPair = CreateAndAddSpeedBumpsFromData(speedBumpsData);
 
-            foreach (var speedBumpData in speedBumpsData)
+            foreach (var laneData in LanesData)
             {
-                // map.Add(CreateLaneletFromSpeedBump(speedBumpData));
-                map.Add(CreateAreaFromSpeedBump(speedBumpData));
+                var mapSpeedBumpList = laneData.mapLane.speedBumps;
+                if (mapSpeedBumpList.Count != 0)
+                {
+                    // associate with lanelet
+                    var speedBumpIDList = LaneSpeedBumpIDListBuilder(speedBumpAndRelationIDPair, mapSpeedBumpList);
+                    foreach (var iD in speedBumpIDList)
+                    {
+                        RelationMember member = new RelationMember(iD, "regulatory_element",
+                            OsmGeoType.Relation);
+                        AddMemberToLanelet(laneData, member);
+                    }
+                }
             }
 
             // process parking space
             foreach (var parkingSpaceData in parkingSpacesData)
             {
-                map.Add(CreateMultiPolygonFromParkingSpace(parkingSpaceData));
+                CreateMultiPolygonFromParkingSpace(parkingSpaceData);
+            }
+
+            //Process right of way
+            var rightOfWayLanesData = new Dictionary<LaneData, List<LaneData>>();
+            foreach (var laneData in LanesData)
+            {
+                if (laneData.mapLane.yieldToLanes != null)
+                {
+                    var rightOfWayData = LaneData.Lane2LaneData[laneData.mapLane];
+                    rightOfWayLanesData.GetOrCreate(rightOfWayData).Add(laneData);
+                }
+            }
+
+            foreach (var laneData in LanesData)
+            {
+                if (laneData.mapLane.yieldingTrafficLanes.Count != 0)
+                {
+                    if (!laneToIDDictionary.TryGetValue(laneData, out var rightOfTheWayLaneIDPair))
+                    {
+                        Debug.Log("Value for right_of_way lane ID was not in the LaneID dictionary.");
+                    }
+
+                    var yieldingLanesList = laneData.mapLane.yieldingTrafficLanes;
+
+                    RelationMember[] members = new RelationMember[1];
+                    members[0] = new RelationMember(rightOfTheWayLaneIDPair.Item2, "right_of_way",
+                        OsmGeoType.Relation);
+
+                    //creating regulatory element
+                    TagsCollection rightOfWayTags = new TagsCollection(
+                        new Tag("subtype", "right_of_way"),
+                        new Tag("type", "regulatory_element"));
+                    Relation rightOfWayRelation = CreateRelationFromMembers(members, rightOfWayTags);
+                    var yieldingLanesDict = YieldingLaneListBuilder(laneToIDDictionary, yieldingLanesList);
+
+                    // updating and adding regulatory element to map
+                    foreach (var laneID in yieldingLanesDict)
+                    {
+                        var member = new RelationMember(laneID, "yield", OsmGeoType.Relation);
+                        AddNewMemberToRelation(rightOfWayRelation, member);
+                    }
+
+                    map.Add(rightOfWayRelation);
+
+                    // associate with lanelet
+                    foreach (var rightOfWayLaneData in rightOfWayLanesData[laneData])
+                    {
+                        RelationMember member = new RelationMember(rightOfWayRelation.Id.Value, "regulatory_element",
+                            OsmGeoType.Relation);
+                        AddMemberToLanelet(rightOfWayLaneData, member);
+                    }
+                }
             }
 
             return true;
         }
 
-        private void CreateLaneletsFromLanes(HashSet<LaneData> lanesData)
+        private IDictionary<LaneData, Tuple<MapTrafficLane, long>> CreateLaneletsFromLanes(HashSet<LaneData> lanesData)
         {
+            var laneIDPairs = new Dictionary<LaneData, Tuple<MapTrafficLane, long>>();
+
             foreach (var laneData in lanesData)
             {
                 Relation lanelet = CreateLaneletFromLane(laneData);
                 if (lanelet != null)
                 {
                     map.Add(lanelet);
+                    var mapTrafficLaneID = Tuple.Create(laneData.mapLane, Convert.ToInt64(lanelet.Id));
+                    laneIDPairs.Add(laneData, mapTrafficLaneID);
                 }
             }
+
+            return laneIDPairs;
+        }
+
+        private List<long> YieldingLaneListBuilder(
+            IDictionary<LaneData, Tuple<MapTrafficLane, long>> lanesDictionary,
+            List<MapTrafficLane> mapTrafficLanes)
+        {
+            var yieldingLaneIDList = new List<long>();
+            foreach (var mapTrafficLane in mapTrafficLanes)
+            {
+                foreach (var pair in lanesDictionary)
+                {
+                    if (mapTrafficLane == pair.Value.Item1)
+                    {
+                        yieldingLaneIDList.Add(pair.Value.Item2);
+                    }
+                }
+            }
+
+            return yieldingLaneIDList;
+        }
+
+        private IDictionary<MapSpeedBump, long> CreateAndAddSpeedBumpsFromData(List<SpeedBumpData> mapSpeedBumpsData)
+        {
+            var speedBumpAndRelationIDPair = new Dictionary<MapSpeedBump, long>();
+
+            foreach (var mapSpeedBumpData in mapSpeedBumpsData)
+            {
+                var speedBumpRelation = CreateAreaFromSpeedBump(mapSpeedBumpData);
+                map.Add(speedBumpRelation);
+                speedBumpAndRelationIDPair.Add(mapSpeedBumpData.mapSpeedBump, Convert.ToInt64(speedBumpRelation.Id));
+            }
+
+            return speedBumpAndRelationIDPair;
+        }
+
+        private List<long> LaneSpeedBumpIDListBuilder(IDictionary<MapSpeedBump, long> speedBumpAndIDRelationDictionary,
+            List<MapSpeedBump> mapSpeedBumps)
+        {
+            var laneSpeedBumpIDList = new List<long>();
+            foreach (var mapSpeedBump in mapSpeedBumps)
+            {
+                foreach (var pair in speedBumpAndIDRelationDictionary)
+                {
+                    if (mapSpeedBump == pair.Key)
+                    {
+                        laneSpeedBumpIDList.Add(pair.Value);
+                    }
+                }
+            }
+
+            return laneSpeedBumpIDList;
         }
 
         public long GetNewId()
@@ -320,6 +446,28 @@ namespace Simulator.Editor
                     if (way.Id == id)
                     {
                         return way;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public Relation GetRelationById(long id)
+        {
+            foreach (OsmGeo element in map)
+            {
+                if (element == null)
+                {
+                    continue;
+                }
+
+                if (element.Type == OsmGeoType.Relation)
+                {
+                    Relation relation = element as Relation;
+                    if (relation.Id == id)
+                    {
+                        return relation;
                     }
                 }
             }
@@ -422,7 +570,7 @@ namespace Simulator.Editor
             TagsCollection tags_xyele = new TagsCollection(
                 new Tag("x", point.z.ToString()),
                 new Tag("y", (-point.x).ToString()),
-                new Tag("ele", point.y.ToString())
+                new Tag("ele", (point.y + MapOrigin.AltitudeOffset).ToString())
             );
 
             // concatenate two tags
@@ -614,11 +762,35 @@ namespace Simulator.Editor
                 TagsCollection right_way_tags = new TagsCollection();
                 TagsCollection lanelet_tags = new TagsCollection(
                     new Tag("location", "urban"),
-                    new Tag("subtype", "road"),
-                    new Tag("participant:vehicle", "yes"),
                     new Tag("type", "lanelet"),
-                    new Tag("speed_limit", laneData.speedLimit.ToString("F"))
+                    new Tag("speed_limit", laneData.speedLimit.ToString("F")),
+                    new Tag("subtype", "road")
                 );
+
+                if (laneData.isRoadShoulder)
+                {
+                    lanelet_tags.AddOrReplace(
+                        new Tag("subtype", "road_shoulder"));
+                }
+
+                if (!laneData.isBicycleLane)
+                {
+                    lanelet_tags.Add(
+                        new Tag("participant:vehicle", "yes"));
+                }
+                else
+                {
+                    lanelet_tags.AddOrReplace(
+                        new Tag("subtype", "bicycle_lane"));
+                    lanelet_tags.Add(
+                        new Tag("participant:bicycle", "yes"));
+                }
+
+                if (laneData.isNoDrivableLane)
+                {
+                    lanelet_tags.Add(
+                        new Tag("no_drivable_lane", "yes"));
+                }
 
                 // create node and way from boundary
                 Way leftWay = CreateWayFromLine(leftLineData, left_way_tags, true);
@@ -662,7 +834,6 @@ namespace Simulator.Editor
                     UpdateAfterLane(rightEndNodeBasedOnLane, afterLaneData, afterLaneRightLineData);
                 }
 
-
                 AddBoundaryTagToWay(laneData, leftWay, rightWay);
 
                 var lane = laneData.mapLane;
@@ -695,8 +866,8 @@ namespace Simulator.Editor
                     new RelationMember(leftWay.Id.Value, "left", OsmGeoType.Way),
                     new RelationMember(rightWay.Id.Value, "right", OsmGeoType.Way),
                 };
-
                 return CreateRelationFromMembers(members, lanelet_tags);
+                //return CreateRelationFromMembersForLanelet(laneData.mapLane, members, lanelet_tags);
             }
             else
             {
@@ -866,62 +1037,6 @@ namespace Simulator.Editor
             return CreateRelationFromMembers(members, tags);
         }
 
-        // public Relation CreateLaneletFromSpeedBump(SpeedBumpData speedBumpData)
-        // {
-        //     Vector3 p0 = speedBumpData.go.transform.TransformPoint(speedBumpData.mapLocalPositions[0]);
-        //     Vector3 p1 = speedBumpData.go.transform.TransformPoint(speedBumpData.mapLocalPositions[1]);
-        //     Vector3 p2 = speedBumpData.go.transform.TransformPoint(speedBumpData.mapLocalPositions[2]);
-        //     Vector3 p3 = speedBumpData.go.transform.TransformPoint(speedBumpData.mapLocalPositions[3]);
-        //
-        //     Node n0 = CreateNodeFromPoint(p0);
-        //     Node n1 = CreateNodeFromPoint(p1);
-        //     Node n2 = CreateNodeFromPoint(p2);
-        //     Node n3 = CreateNodeFromPoint(p3);
-        //
-        //     // check the distance between each point
-        //     double d0 = Vector3.Distance(p0, p1);
-        //     double d1 = Vector3.Distance(p0, p3);
-        //
-        //     Way wayLeft;
-        //     Way wayRight;
-        //     if (d0 >= d1) // create way 0-1, 2-3
-        //     {
-        //         wayLeft = CreateWayFromNodes(new List<Node>() { n0, n1 });
-        //         wayRight = CreateWayFromNodes(new List<Node>() { n2, n3 });
-        //     }
-        //     else // create way 0-3, 1-2
-        //     {
-        //         wayLeft = CreateWayFromNodes(new List<Node>() { n0, n3 });
-        //         wayRight = CreateWayFromNodes(new List<Node>() { n1, n2 });
-        //     }
-        //
-        //     wayLeft.Tags.Add(
-        //         new Tag("type", "speed_bump_marking")
-        //     );
-        //     wayRight.Tags.Add(
-        //         new Tag("type", "speed_bump_marking")
-        //     );
-        //
-        //     // create lanelet
-        //
-        //     var tags = new TagsCollection(
-        //         new Tag("participant:vehicle", "yes"),
-        //         new Tag("subtype", "speed_bump"),
-        //         new Tag("height", speedBumpData.mapSpeedBump.height.ToString("F")),
-        //         new Tag("type", "lanelet")
-        //     );
-        //
-        //     var members = new[]
-        //     {
-        //         new RelationMember(wayLeft.Id.Value, "left", OsmGeoType.Way),
-        //         new RelationMember(wayRight.Id.Value, "right", OsmGeoType.Way),
-        //     };
-        //
-        //     return CreateRelationFromMembers(members, tags);
-        // }
-
-        //mozzz
-
         public Relation CreateAreaFromSpeedBump(SpeedBumpData speedBumpData)
         {
             Vector3 p0 = speedBumpData.go.transform.TransformPoint(speedBumpData.mapLocalPositions[0]);
@@ -959,44 +1074,31 @@ namespace Simulator.Editor
             return CreateRelationFromMembers(members, tags);
         }
 
-        public Relation CreateMultiPolygonFromParkingSpace(ParkingSpaceData parkingSpaceData)
+        public void CreateMultiPolygonFromParkingSpace(ParkingSpaceData parkingSpaceData)
         {
-            Vector3 p0 = parkingSpaceData.go.transform.TransformPoint(parkingSpaceData.mapLocalPositions[0]);
-            Vector3 p1 = parkingSpaceData.go.transform.TransformPoint(parkingSpaceData.mapLocalPositions[1]);
-            Vector3 p2 = parkingSpaceData.go.transform.TransformPoint(parkingSpaceData.mapLocalPositions[2]);
-            Vector3 p3 = parkingSpaceData.go.transform.TransformPoint(parkingSpaceData.mapLocalPositions[3]);
-
-            Node n0 = CreateNodeFromPoint(p0);
-            Node n1 = CreateNodeFromPoint(p1);
-            Node n2 = CreateNodeFromPoint(p2);
-            Node n3 = CreateNodeFromPoint(p3);
-
-            Way way0 = CreateWayFromNodes(new List<Node>() { n0, n1 });
-            Way way1 = CreateWayFromNodes(new List<Node>() { n1, n2 });
-            Way way2 = CreateWayFromNodes(new List<Node>() { n2, n3 });
-            Way way3 = CreateWayFromNodes(new List<Node>() { n3, n0 });
-
-            AddSolidSubtype(way1);
-            AddSolidSubtype(way3);
-            AddVirtualType(way0);
-            AddVirtualType(way2);
-
-            // create multipolygon
-            var tags = new TagsCollection(
-                new Tag("location", "urban"),
-                new Tag("subtype", "parking"),
-                new Tag("type", "multipolygon")
-            );
-
-            var members = new[]
+            var nodeList = new List<Node>();
+            var parkingSpaceLocalPointList = parkingSpaceData.mapLocalPositions;
+            foreach (var localPointPosition in parkingSpaceLocalPointList)
             {
-                new RelationMember(way0.Id.Value, "outer", OsmGeoType.Way),
-                new RelationMember(way1.Id.Value, "outer", OsmGeoType.Way),
-                new RelationMember(way2.Id.Value, "outer", OsmGeoType.Way),
-                new RelationMember(way3.Id.Value, "outer", OsmGeoType.Way)
-            };
+                var worldPoint = parkingSpaceData.go.transform.TransformPoint(localPointPosition);
+                nodeList.Add(CreateNodeFromPoint(worldPoint));
+            }
 
-            return CreateRelationFromMembers(members, tags);
+            if (nodeList.Count == 2)
+            {
+                TagsCollection parkingSpaceTags = new TagsCollection(
+                    new Tag("width", Convert.ToString(parkingSpaceData.mapParkingSpace.parkingSpaceWidth)),
+                    new Tag("type", "parking_space"));
+                CreateWayFromNodes(nodeList, parkingSpaceTags);
+            }
+            else if (nodeList.Count > 2)
+            {
+                TagsCollection parkingLotTags = new TagsCollection(
+                    new Tag("area", "yes"),
+                    new Tag("type", "parking_lot")
+                );
+                CreateWayFromNodes(nodeList, parkingLotTags);
+            }
         }
 
         void AddSolidSubtype(Way way)
@@ -1108,6 +1210,16 @@ namespace Simulator.Editor
             }
         }
 
+        //add new members to relations before adding to map
+        public Relation AddNewMemberToRelation(Relation relation, RelationMember newRelationMember)
+        {
+            RelationMember[] tmp = new RelationMember[relation.Members.Length + 1];
+            Array.Copy(relation.Members, tmp, relation.Members.Length);
+            tmp[relation.Members.Length] = newRelationMember;
+            relation.Members = tmp;
+            return relation;
+        }
+
         static List<Vector3> ComputeBoundary(List<Vector3> leftLanePoints, List<Vector3> rightLanePoints)
         {
             // Check the directions of two boundry lines
@@ -1178,7 +1290,6 @@ namespace Simulator.Editor
 
             return centerLinePoints;
         }
-
 
         static List<Vector3> ComputeBoundary(List<Vector3> lanePoints, string side, double width, double pitch)
         {
@@ -2040,6 +2151,30 @@ namespace Simulator.Editor
                     new Tag("color", "white")
                 );
             }
+            else if (laneData.mapLane.leftLineBoundry.lineType == MapData.LineType.BIKE_MARKING_SOLID)
+            {
+                leftWay.Tags.Add(
+                    new Tag("type", "bike_marking")
+                );
+                leftWay.Tags.Add(
+                    new Tag("subtype", "solid")
+                );
+                leftWay.Tags.Add(
+                    new Tag("color", "white")
+                );
+            }
+            else if (laneData.mapLane.leftLineBoundry.lineType == MapData.LineType.BIKE_MARKING_DASHED)
+            {
+                leftWay.Tags.Add(
+                    new Tag("type", "bike_marking")
+                );
+                leftWay.Tags.Add(
+                    new Tag("subtype", "dashed")
+                );
+                leftWay.Tags.Add(
+                    new Tag("color", "white")
+                );
+            }
             else if (laneData.mapLane.leftLineBoundry.lineType == MapData.LineType.SOLID_YELLOW)
             {
                 leftWay.Tags.Add(
@@ -2133,6 +2268,30 @@ namespace Simulator.Editor
                 );
                 rightWay.Tags.Add(
                     new Tag("subtype", "solid")
+                );
+                rightWay.Tags.Add(
+                    new Tag("color", "white")
+                );
+            }
+            else if (laneData.mapLane.rightLineBoundry.lineType == MapData.LineType.BIKE_MARKING_SOLID)
+            {
+                rightWay.Tags.Add(
+                    new Tag("type", "bike_marking")
+                );
+                rightWay.Tags.Add(
+                    new Tag("subtype", "solid")
+                );
+                rightWay.Tags.Add(
+                    new Tag("color", "white")
+                );
+            }
+            else if (laneData.mapLane.rightLineBoundry.lineType == MapData.LineType.BIKE_MARKING_DASHED)
+            {
+                rightWay.Tags.Add(
+                    new Tag("type", "bike_marking")
+                );
+                rightWay.Tags.Add(
+                    new Tag("subtype", "dashed")
                 );
                 rightWay.Tags.Add(
                     new Tag("color", "white")

@@ -12,13 +12,13 @@ namespace Simulator.Map
     public class MapParkingSpace : MapDataPoints, IMapType, ISpawnable
     {
         public string id { get; set; }
-
+        public float parkingSpaceWidth = 3;
         public override void Draw()
         {
             if (mapLocalPositions.Count < 2) return;
 
             AnnotationGizmos.DrawWaypoints(transform, mapLocalPositions, MapAnnotationTool.WAYPOINT_SIZE, parkingSpaceColor + selectedColor);
-            AnnotationGizmos.DrawWaypoint(MiddleEnter, 0.2f, parkingSpaceColor);
+            //AnnotationGizmos.DrawWaypoint(MiddleEnter, 0.2f, parkingSpaceColor);
             AnnotationGizmos.DrawLines(transform, mapLocalPositions, parkingSpaceColor + selectedColor,true);
             if (MapAnnotationTool.SHOW_HELP)
             {

@@ -28,7 +28,7 @@ public class MapSpeedBumpEditor : Editor
 
         if (vmMapSpeedBump.DisplayHandles)
         {
-            Undo.RecordObject(vmMapSpeedBump, "Parking Space points change");
+            Undo.RecordObject(vmMapSpeedBump, "Speedbump points change");
             for (int i = 0; i < vmMapSpeedBump.mapLocalPositions.Count - 1; i++)
             {
                 Vector3 newTargetPosition = Handles.PositionHandle(vmMapSpeedBump.transform.TransformPoint(vmMapSpeedBump.mapLocalPositions[i]), Quaternion.identity);
